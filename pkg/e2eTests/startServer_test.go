@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLaunchServer(t *testing.T) {
@@ -13,7 +15,5 @@ func TestLaunchServer(t *testing.T) {
 
 	_, err := http.Get(ts.URL)
 
-	if err != nil {
-		t.Errorf("Failed to reach server with error: %v", err)
-	}
+	assert.Nil(t, err)
 }

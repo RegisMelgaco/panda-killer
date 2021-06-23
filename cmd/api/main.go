@@ -10,6 +10,6 @@ import (
 func main() {
 	log.Info("Server is starting ...")
 	log.Fatal(
-		http.ListenAndServe(":8000", rest.CreateRouter())
+		http.ListenAndServe(":8000", rest.CreateRouter()),
 	)
 }
