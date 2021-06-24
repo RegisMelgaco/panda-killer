@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS account(
+   user_id serial PRIMARY KEY,
+   name VARCHAR (50) UNIQUE NOT NULL,
+   cpf VARCHAR (11) NOT NULL,
+   secret VARCHAR (1) NOT NULL,
+   balance DOUBLE PRECISION NOT NULL,
+   created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

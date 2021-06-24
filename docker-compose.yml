@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+    app:
+        build: .
+        ports: 
+            - 8000:8000
+        depends_on:
+            - db
+        env_file: .env
+    db:
+        image: postgres:13.3
+        environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
