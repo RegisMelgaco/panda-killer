@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"local/panda-killer/pkg/gateway"
 	"net/http"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func CreateRouter() http.Handler {
+func CreateRouter(server *gateway.Server) http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -21,6 +22,8 @@ func CreateRouter() http.Handler {
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
+
+	r.Post("/accounts/", CreateAccount(server))
 
 	return r
 }

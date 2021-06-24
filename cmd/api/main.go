@@ -4,9 +4,9 @@ import (
 	"context"
 	"local/panda-killer/pkg/gateway"
 	"local/panda-killer/pkg/gateway/db/postgres"
-	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -21,13 +21,12 @@ func main() {
 
 	log.Info("Server is started!")
 
-	log.Fatal(
-		http.ListenAndServe(":8000", rest.CreateRouter(
-			&gateway.Server{
-				AccountRepo: repository.NewAccountRepo(),
-			},
-		)),
+	err := http.ListenAndServe(":8000",
+		rest.CreateRouter(
+			gateway.NewServer(),
+		),
 	)
+	log.Fatal(err)
 }
 
 func waitPostgres() (err error) {
@@ -37,6 +36,7 @@ func waitPostgres() (err error) {
 			conn.Close(context.Background())
 			return nil
 		}
+		time.Sleep(3 * time.Second)
 	}
 	return
 }
