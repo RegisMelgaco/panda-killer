@@ -29,10 +29,9 @@ func TestCreateAccount(t *testing.T) {
 		}
 
 		pgxConn, _ := postgres.OpenConnection()
+		accountRepo := repository.NewAccountRepo(pgxConn)
 		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(
-				repository.NewAccountRepo(pgxConn),
-			),
+			usecase.NewAccountUsecase(accountRepo),
 		)
 		ts := httptest.NewServer(router)
 		defer ts.Close()
@@ -55,17 +54,15 @@ func TestCreateAccount(t *testing.T) {
 		if respAccount.ID < 1 {
 			t.Errorf("Id not set on response: %v", respAccount)
 		}
-
-		resp, _ = client.ListAccounts()
-
-		if resp.StatusCode != http.StatusOK {
-			t.Errorf("Failed request to list accounts: %v", resp)
-			t.FailNow()
+		if respAccount.CreatedAt.Before(testStartTime) {
+			t.Errorf("CreatedAt of account should be greatter or equals to test start time and not %v", respAccount.CreatedAt)
 		}
 
-		var accounts []account.Account
-		decoder := json.NewDecoder(resp.Body)
-		decoder.Decode(&accounts)
+		accounts, err := accountRepo.GetAccounts()
+		if err != nil {
+			t.Errorf("Failed to get stored accounts: %v", err)
+			t.FailNow()
+		}
 
 		if len(accounts) != 1 {
 			t.Errorf("Should exist one account")
@@ -73,11 +70,8 @@ func TestCreateAccount(t *testing.T) {
 		}
 
 		account := accounts[0]
-		if account.ID < 1 {
+		if account.ID != 1 {
 			t.Errorf("Account id should be set and not %v", account.ID)
-		}
-		if account.CreatedAt.Before(testStartTime) {
-			t.Errorf("CreatedAt of account should be greatter or equals to test start time and not %v", account.CreatedAt)
 		}
 
 		testAccount.ID = account.ID
