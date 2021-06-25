@@ -1,41 +1,47 @@
 package main
 
 import (
-	"context"
+	"errors"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/db/postgres"
+	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	log.Info("Server is starting ...")
 
-	if err := waitPostgres(); err != nil {
+	conn, err := waitPostgres()
+	if err != nil {
 		panic(err)
 	}
 	postgres.RunMigrations()
 
-	log.Info("Server is started!")
-
 	router := rest.CreateRouter(
-		usecase.Account{},
+		usecase.NewAccountUsecase(
+			repository.NewAccountRepo(
+				conn,
+			),
+		),
 	)
-	err := http.ListenAndServe(":8000", router)
+
+	log.Info("Server have started!")
+	err = http.ListenAndServe(":8000", router)
 	log.Fatal(err)
 }
 
-func waitPostgres() (err error) {
+func waitPostgres() (*pgx.Conn, error) {
 	for i := 0; i < 3; i++ {
 		conn, err := postgres.OpenConnection()
 		if err == nil {
-			conn.Close(context.Background())
-			return nil
+			return conn, nil
 		}
 		time.Sleep(3 * time.Second)
 	}
-	return
+	return nil, errors.New("Failed to connect to Postgres in 9 seconds")
 }
