@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"local/panda-killer/pkg/gateway"
+	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
@@ -21,11 +21,10 @@ func main() {
 
 	log.Info("Server is started!")
 
-	err := http.ListenAndServe(":8000",
-		rest.CreateRouter(
-			gateway.NewServer(),
-		),
+	router := rest.CreateRouter(
+		usecase.Account{},
 	)
+	err := http.ListenAndServe(":8000", router)
 	log.Fatal(err)
 }
 

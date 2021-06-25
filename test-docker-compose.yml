@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: test-dockerfile
+        ports: 
+            - 8000:8000
+        depends_on:
+            - db
+        entrypoint: [ "go", "test", "/go/src/app/pkg/e2eTests/createAccount_test.go" ]
+        env_file: .test-env
+    db:
+        image: postgres:13.3
+        ports: 
+            - 5432:5432
+        environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres

@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"local/panda-killer/pkg/gateway"
+	"local/panda-killer/pkg/domain/usecase"
 	"net/http"
 	"time"
 
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func CreateRouter(server *gateway.Server) http.Handler {
+func CreateRouter(accountUsecase *usecase.AccountUsecase) http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -23,7 +23,8 @@ func CreateRouter(server *gateway.Server) http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Post("/accounts/", CreateAccount(server))
+	r.Post("/accounts/", CreateAccount(accountUsecase))
+	r.Get("/accounts/", GetAccounts(accountUsecase))
 
 	return r
 }

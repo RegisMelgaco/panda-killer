@@ -9,7 +9,7 @@ import (
 	"local/panda-killer/cmd/config"
 )
 
-func RunMigrations() {
+func RunMigrations() error {
 	dbUrl, err := config.GetDBUrl()
 	if err != nil {
 		panic(err)
@@ -27,10 +27,12 @@ func RunMigrations() {
 
 	err = m.Up()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	version, _, _ := m.Version()
 
 	log.Infof("Migration at version %v", version)
+
+	return nil
 }

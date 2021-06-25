@@ -1,24 +1,90 @@
 package e2etest
 
 import (
-	"bytes"
 	"encoding/json"
-	"local/panda-killer/pkg/domain/entity"
+	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/usecase"
+	"local/panda-killer/pkg/e2eTests/requests"
+	"local/panda-killer/pkg/gateway/db/postgres"
+	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateAccount(t *testing.T) {
-	ts := httptest.NewServer(rest.CreateRouter())
-	defer ts.Close()
+	t.Run("Creating account successfully should persist account", func(t *testing.T) {
+		postgres.RunMigrations()
+		testStartTime := time.Now()
 
-	account, _ := json.Marshal(entity.Account{})
+		testAccount := account.Account{
+			Balance: 2,
+			Name:    "Marcelinho",
+			CPF:     "12345678901",
+			Secret:  "s",
+		}
 
-	resp, _ := http.Post(ts.URL+"/accounts", "application/json", bytes.NewBuffer(account))
+		pgxConn, _ := postgres.OpenConnection()
+		router := rest.CreateRouter(
+			usecase.NewAccountUsecase(
+				repository.NewAccountRepo(pgxConn),
+			),
+		)
+		ts := httptest.NewServer(router)
+		defer ts.Close()
+		client := requests.Client{Host: ts.URL}
 
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("Failed to create account with response: %v", resp)
-	}
+		resp, _ := client.CreateAccount(testAccount)
+
+		if resp.StatusCode != http.StatusCreated {
+			t.Errorf("Failed request to create account: %v", resp)
+			t.FailNow()
+		}
+
+		var respAccount account.Account
+		err := json.NewDecoder(resp.Body).Decode(&respAccount)
+		if err != nil {
+			t.Errorf("Invalid response format: %v", err)
+			t.FailNow()
+		}
+
+		if respAccount.ID < 1 {
+			t.Errorf("Id not set on response: %v", respAccount)
+		}
+
+		resp, _ = client.ListAccounts()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Failed request to list accounts: %v", resp)
+			t.FailNow()
+		}
+
+		var accounts []account.Account
+		decoder := json.NewDecoder(resp.Body)
+		decoder.Decode(&accounts)
+
+		if len(accounts) != 1 {
+			t.Errorf("Should exist one account")
+			t.FailNow()
+		}
+
+		account := accounts[0]
+		if account.ID < 1 {
+			t.Errorf("Account id should be set and not %v", account.ID)
+		}
+		if account.CreatedAt.Before(testStartTime) {
+			t.Errorf("CreatedAt of account should be greatter or equals to test start time and not %v", account.CreatedAt)
+		}
+
+		testAccount.ID = account.ID
+		testAccount.CreatedAt = account.CreatedAt
+		assert.ObjectsAreEqualValues(testAccount, account)
+	})
+	// t.Run("Creating account with invalid account shouldn't persist account", func(t *testing.T) {
+	// 	// TODO implementar
+	// })
 }
