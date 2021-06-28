@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS account(
    account_id serial PRIMARY KEY,
-   name VARCHAR (50) UNIQUE NOT NULL,
+   name VARCHAR (50) NOT NULL,
    cpf VARCHAR (11) NOT NULL,
    secret VARCHAR (1) NOT NULL,
    balance DOUBLE PRECISION NOT NULL,

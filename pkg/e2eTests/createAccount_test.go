@@ -78,7 +78,24 @@ func TestCreateAccount(t *testing.T) {
 		testAccount.CreatedAt = account.CreatedAt
 		assert.ObjectsAreEqualValues(testAccount, account)
 	})
-	// t.Run("Creating account with invalid account shouldn't persist account", func(t *testing.T) {
-	// 	// TODO implementar
-	// })
+	t.Run("Creating account with invalid account shouldn't persist account", func(t *testing.T) {
+		postgres.RunMigrations()
+
+		testAccount := account.Account{}
+
+		pgxConn, _ := postgres.OpenConnection()
+		accountRepo := repository.NewAccountRepo(pgxConn)
+		router := rest.CreateRouter(
+			usecase.NewAccountUsecase(accountRepo),
+		)
+		ts := httptest.NewServer(router)
+		defer ts.Close()
+		client := requests.Client{Host: ts.URL}
+
+		resp, _ := client.CreateAccount(testAccount)
+
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("Server should answer with bad request: %v", resp)
+		}
+	})
 }

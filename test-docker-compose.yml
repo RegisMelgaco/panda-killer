@@ -9,7 +9,7 @@ services:
             - 8000:8000
         depends_on:
             - db
-        entrypoint: [ "go", "test", "/go/src/app/pkg/e2eTests/createAccount_test.go" ]
+        # entrypoint: [ "go", "test", "/go/src/app/pkg/e2eTests/createAccount_test.go" ]
         env_file: .test-env
     db:
         image: postgres:13.3

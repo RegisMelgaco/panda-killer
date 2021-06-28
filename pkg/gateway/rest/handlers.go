@@ -21,6 +21,11 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 		}
 
 		err = usecase.CreateAccount(&newAccount)
+		if err == account.ErrAccountCPFShouldHaveLength11 || err == account.ErrAccountNameIsObligatory {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(ErrorHolder{Message: err.Error()})
+			return
+		}
 		if err != nil {
 			log.Errorf("AccountRepo failed to create account: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
