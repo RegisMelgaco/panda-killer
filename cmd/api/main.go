@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
@@ -30,8 +31,13 @@ func main() {
 		),
 	)
 
+	port, err := config.GetRestApiPort()
+	if err != nil {
+		panic(err)
+	}
+
 	log.Info("Server have started!")
-	err = http.ListenAndServe(":8000", router)
+	err = http.ListenAndServe(port, router)
 	log.Fatal(err)
 }
 

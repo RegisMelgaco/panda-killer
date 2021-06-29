@@ -7,10 +7,13 @@ import (
 
 const (
 	dbUrlEnvKey        = "DB_URL"
-	DBEnvNotSetMessage = "db url not set in environment variable " + dbUrlEnvKey + " not set"
+	dbEnvNotSetMessage = "db url not set in environment variable " + dbUrlEnvKey + " not set"
 
 	migrationsFolderUrlEnvKey           = "MIGRATIONS_FOLDER_URL"
-	MigrationsFolderUrlEnvNotSetMessage = "migrations folder url in environment variable " + migrationsFolderUrlEnvKey + " not set"
+	migrationsFolderUrlEnvNotSetMessage = "migrations folder url in environment variable " + migrationsFolderUrlEnvKey + " not set"
+
+	restApiPortEnvKey           = "REST_API_PORT"
+	restApiPortEnvNotSetMessage = "rest api port environment variable (" + restApiPortEnvKey + ") is not set"
 )
 
 func getEnvVariable(variableKey, errorMessage string) (string, error) {
@@ -22,9 +25,13 @@ func getEnvVariable(variableKey, errorMessage string) (string, error) {
 }
 
 func GetDBUrl() (string, error) {
-	return getEnvVariable(dbUrlEnvKey, DBEnvNotSetMessage)
+	return getEnvVariable(dbUrlEnvKey, dbEnvNotSetMessage)
 }
 
 func GetMigrationsFolderUrl() (string, error) {
-	return getEnvVariable(migrationsFolderUrlEnvKey, MigrationsFolderUrlEnvNotSetMessage)
+	return getEnvVariable(migrationsFolderUrlEnvKey, migrationsFolderUrlEnvNotSetMessage)
+}
+
+func GetRestApiPort() (string, error) {
+	return getEnvVariable(restApiPortEnvKey, restApiPortEnvNotSetMessage)
 }
