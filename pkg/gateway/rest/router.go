@@ -21,9 +21,11 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase) http.Handler {
 	r.Use(middleware.SetHeader("Content-type", "application/json"))
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Post("/accounts", CreateAccount(accountUsecase))
-	r.Get("/accounts", GetAccounts(accountUsecase))
-	r.Get("/accounts/{accountID}/balance", GetAccountBalance(accountUsecase))
+	r.Route("/accounts", func(r chi.Router) {
+		r.Post("/", CreateAccount(accountUsecase))
+		r.Get("/", GetAccounts(accountUsecase))
+		r.Get("/{accountID}/balance", GetAccountBalance(accountUsecase))
+	})
 
 	return r
 }
