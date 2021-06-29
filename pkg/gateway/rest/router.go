@@ -23,8 +23,8 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase) http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Post("/accounts/", CreateAccount(accountUsecase))
-	r.Get("/accounts/", GetAccounts(accountUsecase))
+	r.Post("/accounts", CreateAccount(accountUsecase))
+	r.Get("/accounts", GetAccounts(accountUsecase))
 	r.Get("/accounts/{accountID}/balance", GetAccountBalance(accountUsecase))
 
 	return r
