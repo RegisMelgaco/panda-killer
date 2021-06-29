@@ -5,7 +5,6 @@ import (
 	"local/panda-killer/pkg/domain/entity/account"
 
 	"github.com/jackc/pgx/v4"
-	"github.com/sirupsen/logrus"
 )
 
 type AccountRepoImpl struct {
@@ -50,18 +49,17 @@ func (r AccountRepoImpl) GetAccounts(ctx context.Context) ([]*account.Account, e
 	return accounts, rows.Err()
 }
 
-func (r AccountRepoImpl) GetAccountBalance(ctx context.Context, accountID int) (float64, error) {
-	rows, err := r.conn.Query(ctx, "SELECT balance FROM account WHERE account_id = $1 LIMIT 1;", accountID)
+func (r AccountRepoImpl) GetAccount(ctx context.Context, accountID int) (*account.Account, error) {
+	rows, err := r.conn.Query(ctx, "SELECT account_id, name, cpf, secret, balance, created_at FROM account WHERE account_id = $1 LIMIT 1;", accountID)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	logrus.Debug(rows.RawValues())
 	if !rows.Next() {
-		return 0, account.ErrAccountNotFound
+		return nil, nil
 	}
 
-	var balance float64
-	err = rows.Scan(&balance)
+	var a account.Account
+	err = rows.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
 
-	return balance, err
+	return &a, err
 }

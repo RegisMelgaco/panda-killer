@@ -61,15 +61,15 @@ func (u AccountUsecase) CreateAccount(ctx context.Context, newAccount *account.A
 func (u AccountUsecase) GetBalance(ctx context.Context, accountID int) (float64, error) {
 	entry := logrus.WithField("accountID", accountID)
 
-	balance, err := u.repo.GetAccountBalance(ctx, accountID)
-	if err == account.ErrAccountNotFound {
+	a, err := u.repo.GetAccount(ctx, accountID)
+	if a == nil {
 		entry.Infof("Get balance failed with domain error: %v", err)
-		return 0, err
+		return 0, account.ErrAccountNotFound
 	}
 	if err != nil {
 		entry.Errorf("Get balance failed with internal error: %v", err)
 		return 0, err
 	}
 
-	return balance, nil
+	return a.Balance, nil
 }
