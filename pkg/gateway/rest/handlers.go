@@ -25,7 +25,7 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 		err = usecase.CreateAccount(r.Context(), &newAccount)
 		if err == account.ErrAccountCPFShouldHaveLength11 || err == account.ErrAccountNameIsObligatory {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(ErrorHolder{Message: err.Error()})
+			json.NewEncoder(w).Encode(ErrorResponse{Message: err.Error()})
 			return
 		}
 		if err != nil {
@@ -35,7 +35,7 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(newAccount)
+		json.NewEncoder(w).Encode(CreatedAccountResponse{newAccount.ID})
 	}
 }
 
@@ -48,8 +48,13 @@ func GetAccounts(usecase *usecase.AccountUsecase) http.HandlerFunc {
 			return
 		}
 
+		var responseObjs []GetAccountResponse
+		for _, a := range accounts {
+			responseObjs = append(responseObjs, GetAccountResponse{ID: a.ID, Name: a.Name, CPF: a.CPF})
+		}
+
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(accounts)
+		json.NewEncoder(w).Encode(responseObjs)
 	}
 }
 
@@ -57,7 +62,6 @@ func GetAccountBalance(usecase *usecase.AccountUsecase) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		accountIDStr := chi.URLParam(r, "accountID")
 		accountID, err := strconv.Atoi(accountIDStr)
-		log.Debug(accountID)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 			return
@@ -81,4 +85,18 @@ func GetAccountBalance(usecase *usecase.AccountUsecase) http.HandlerFunc {
 
 type AccountBalanceResponse struct {
 	Balance float64 `json:"balance"`
+}
+
+type ErrorResponse struct {
+	Message string
+}
+
+type CreatedAccountResponse struct {
+	ID int `json:"id"`
+}
+
+type GetAccountResponse struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	CPF  string `json:"cpf"`
 }

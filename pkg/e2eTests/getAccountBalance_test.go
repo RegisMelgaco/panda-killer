@@ -41,7 +41,7 @@ func TestGetAccountBalance(t *testing.T) {
 			t.Errorf("Response status should be OK and not %v", resp.Status)
 		}
 
-		var balanceContainer rest.BalanceContainer
+		var balanceContainer rest.AccountBalanceResponse
 		err = json.NewDecoder(resp.Body).Decode(&balanceContainer)
 		if err != nil {
 			t.Errorf("Request body format not expected: %v", err)

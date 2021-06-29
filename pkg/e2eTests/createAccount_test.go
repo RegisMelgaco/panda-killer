@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +19,6 @@ import (
 func TestCreateAccount(t *testing.T) {
 	t.Run("Creating account successfully should persist account", func(t *testing.T) {
 		postgres.RunMigrations()
-		testStartTime := time.Now()
 
 		testAccount := account.Account{
 			Balance: 2,
@@ -54,9 +52,6 @@ func TestCreateAccount(t *testing.T) {
 
 		if respAccount.ID < 1 {
 			t.Errorf("Id not set on response: %v", respAccount)
-		}
-		if respAccount.CreatedAt.Before(testStartTime) {
-			t.Errorf("CreatedAt of account should be greatter or equals to test start time and not %v", respAccount.CreatedAt)
 		}
 
 		accounts, err := accountRepo.GetAccounts(context.Background())
