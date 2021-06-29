@@ -49,5 +49,5 @@ func waitPostgres() (*pgx.Conn, error) {
 		}
 		time.Sleep(3 * time.Second)
 	}
-	return nil, errors.New("Failed to connect to Postgres in 9 seconds")
+	return nil, errors.New("failed to connect to Postgres in 9 seconds")
 }
