@@ -18,6 +18,8 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase) http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.StripSlashes)
+	r.Use(middleware.AllowContentType("application/json"))
+	r.Use(middleware.SetHeader("Content-type", "application/json"))
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
