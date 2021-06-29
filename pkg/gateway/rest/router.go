@@ -25,6 +25,7 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase) http.Handler {
 
 	r.Post("/accounts/", CreateAccount(accountUsecase))
 	r.Get("/accounts/", GetAccounts(accountUsecase))
+	r.Get("/accounts/{accountID}/balance", GetAccountBalance(accountUsecase))
 
 	return r
 }

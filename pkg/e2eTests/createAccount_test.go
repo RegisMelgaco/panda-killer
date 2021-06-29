@@ -1,6 +1,7 @@
 package e2etest
 
 import (
+	"context"
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
@@ -58,7 +59,7 @@ func TestCreateAccount(t *testing.T) {
 			t.Errorf("CreatedAt of account should be greatter or equals to test start time and not %v", respAccount.CreatedAt)
 		}
 
-		accounts, err := accountRepo.GetAccounts()
+		accounts, err := accountRepo.GetAccounts(context.Background())
 		if err != nil {
 			t.Errorf("Failed to get stored accounts: %v", err)
 			t.FailNow()

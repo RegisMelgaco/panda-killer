@@ -1,6 +1,7 @@
 package e2etest
 
 import (
+	"context"
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
@@ -30,7 +31,7 @@ func TestListAccounts(t *testing.T) {
 
 		testAccounts := []account.Account{{Name: "João", CPF: "12345678901"}, {Name: "Maria", CPF: "12345678901"}}
 		for _, a := range testAccounts {
-			accountRepo.CreateAccount(&a)
+			accountRepo.CreateAccount(context.Background(), &a)
 		}
 
 		resp, _ := client.ListAccounts()

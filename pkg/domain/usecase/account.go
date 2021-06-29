@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"local/panda-killer/pkg/domain/entity/account"
 	"time"
 )
@@ -15,11 +16,11 @@ func NewAccountUsecase(accountRepo account.AccountRepo) *AccountUsecase {
 	}
 }
 
-func (u AccountUsecase) GetAccounts() ([]*account.Account, error) {
-	return u.repo.GetAccounts()
+func (u AccountUsecase) GetAccounts(ctx context.Context) ([]*account.Account, error) {
+	return u.repo.GetAccounts(ctx)
 }
 
-func (u AccountUsecase) CreateAccount(newAccount *account.Account) error {
+func (u AccountUsecase) CreateAccount(ctx context.Context, newAccount *account.Account) error {
 	if len(newAccount.Name) == 0 {
 		return account.ErrAccountNameIsObligatory
 	}
@@ -27,5 +28,9 @@ func (u AccountUsecase) CreateAccount(newAccount *account.Account) error {
 		return account.ErrAccountCPFShouldHaveLength11
 	}
 	newAccount.CreatedAt = time.Now()
-	return u.repo.CreateAccount(newAccount)
+	return u.repo.CreateAccount(ctx, newAccount)
+}
+
+func (u AccountUsecase) GetBalance(ctx context.Context, accountID int) (float64, error) {
+	return u.repo.GetAccountBalance(ctx, accountID)
 }

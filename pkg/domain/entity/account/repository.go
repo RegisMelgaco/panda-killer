@@ -1,6 +1,9 @@
 package account
 
+import "context"
+
 type AccountRepo interface {
-	CreateAccount(*Account) error
-	GetAccounts() ([]*Account, error)
+	CreateAccount(context.Context, *Account) error
+	GetAccounts(context.Context) ([]*Account, error)
+	GetAccountBalance(context.Context, int) (float64, error)
 }
