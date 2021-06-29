@@ -4,6 +4,8 @@ import (
 	"context"
 	"local/panda-killer/pkg/domain/entity/account"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type AccountUsecase struct {
@@ -17,20 +19,57 @@ func NewAccountUsecase(accountRepo account.AccountRepo) *AccountUsecase {
 }
 
 func (u AccountUsecase) GetAccounts(ctx context.Context) ([]*account.Account, error) {
-	return u.repo.GetAccounts(ctx)
+	accounts, err := u.repo.GetAccounts(ctx)
+	if err != nil {
+		logrus.Errorf("Get accounts failed with internal error: %v", err)
+		return accounts, err
+	}
+
+	logrus.Info("Get accounts succeeded")
+
+	return accounts, err
 }
 
 func (u AccountUsecase) CreateAccount(ctx context.Context, newAccount *account.Account) error {
+	entry := logrus.WithField("account", newAccount)
+
+	var err error
 	if len(newAccount.Name) == 0 {
-		return account.ErrAccountNameIsObligatory
+		err = account.ErrAccountNameIsObligatory
 	}
 	if len(newAccount.CPF) != 11 {
-		return account.ErrAccountCPFShouldHaveLength11
+		err = account.ErrAccountCPFShouldHaveLength11
 	}
+
+	if err != nil {
+		entry.Infof("Create account failed with domain error: %v", err)
+		return err
+	}
+
 	newAccount.CreatedAt = time.Now()
-	return u.repo.CreateAccount(ctx, newAccount)
+
+	err = u.repo.CreateAccount(ctx, newAccount)
+	if err != nil {
+		entry.Infof("Create account failed with internal error: %v", err)
+		return err
+	}
+
+	entry.Info("Created account with success")
+	return nil
 }
 
 func (u AccountUsecase) GetBalance(ctx context.Context, accountID int) (float64, error) {
-	return u.repo.GetAccountBalance(ctx, accountID)
+	entry := logrus.WithField("accountID", accountID)
+
+	balance, err := u.repo.GetAccountBalance(ctx, accountID)
+	if err == account.ErrAccountNotFound {
+		entry.Infof("Get balance failed with domain error: %v", err)
+		return 0, err
+	}
+	if err != nil {
+		entry.Errorf("Get balance failed with internal error: %v", err)
+		return 0, err
+	}
+
+	return balance, nil
 }
