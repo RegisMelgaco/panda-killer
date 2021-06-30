@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"local/panda-killer/pkg/domain/entity/account"
 
 	"github.com/jackc/pgx/v4"
@@ -40,7 +41,7 @@ func (r AccountRepoImpl) GetAccounts(ctx context.Context) ([]*account.Account, e
 	defer rows.Close()
 
 	var accounts []*account.Account
-	for i := 0; rows.Next(); i++ {
+	for rows.Next() {
 		var a account.Account
 		rows.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
 		accounts = append(accounts, &a)
@@ -50,16 +51,10 @@ func (r AccountRepoImpl) GetAccounts(ctx context.Context) ([]*account.Account, e
 }
 
 func (r AccountRepoImpl) GetAccount(ctx context.Context, accountID int) (*account.Account, error) {
-	rows, err := r.conn.Query(ctx, "SELECT account_id, name, cpf, secret, balance, created_at FROM account WHERE account_id = $1 LIMIT 1;", accountID)
-	if err != nil {
-		return nil, err
-	}
-	if !rows.Next() {
-		return nil, nil
-	}
+	row := r.conn.QueryRow(ctx, "SELECT account_id, name, cpf, secret, balance, created_at FROM account WHERE account_id = $1 FETCH FIRST ROW ONLY;", fmt.Sprint(accountID))
 
 	var a account.Account
-	err = rows.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
+	err := row.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
 
 	return &a, err
 }

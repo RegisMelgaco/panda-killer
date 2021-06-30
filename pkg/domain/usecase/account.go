@@ -62,7 +62,7 @@ func (u AccountUsecase) GetBalance(ctx context.Context, accountID int) (float64,
 	entry := logrus.WithField("accountID", accountID)
 
 	a, err := u.repo.GetAccount(ctx, accountID)
-	if a == nil {
+	if a.ID == 0 {
 		entry.Infof("Get balance failed with domain error: %v", err)
 		return 0, account.ErrAccountNotFound
 	}
