@@ -29,10 +29,18 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 		entry.Errorf("Failed to load originAccount on transfer creation with internal error: %v", err)
 		return &transfer.Transfer{}, err
 	}
+	if originAccount.ID == 0 {
+		entry.Warnf("Failed to create account with nonexisting originAccount")
+		return &transfer.Transfer{}, account.ErrAccountNotFound
+	}
 	destinationAccount, err := u.accountRepo.GetAccount(ctx, destinationAccountID)
 	if err != nil {
 		entry.Errorf("Failed to load destinationAccount on transfer creation with internal error: %v", err)
 		return &transfer.Transfer{}, err
+	}
+	if destinationAccount.ID == 0 {
+		entry.Warnf("Failed to create account with nonexisting destinationAccount")
+		return &transfer.Transfer{}, account.ErrAccountNotFound
 	}
 
 	newTransfer, err := transfer.NewTransfer(originAccount, destinationAccount, amount)

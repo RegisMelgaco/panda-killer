@@ -104,6 +104,11 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 			json.NewEncoder(rw).Encode(ErrorResponse{Message: err.Error()})
 			return
 		}
+		if err == account.ErrAccountNotFound {
+			rw.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(rw).Encode(ErrorResponse{Message: err.Error()})
+			return
+		}
 		if err != nil {
 			rw.WriteHeader(http.StatusInternalServerError)
 			return

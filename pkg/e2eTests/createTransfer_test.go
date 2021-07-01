@@ -16,27 +16,22 @@ import (
 )
 
 func TestCreateTransfer(t *testing.T) {
-	err := postgres.RunMigrations()
-	if err != nil {
-		t.Errorf("Failed to run migrations: %v", err)
-		t.FailNow()
-	}
+	postgres.RunMigrations()
+
+	pgxConn, _ := postgres.OpenConnection()
+	accountRepo := repository.NewAccountRepo(pgxConn)
+	transferRepo := repository.NewTransferRepo(pgxConn)
+	router := rest.CreateRouter(
+		usecase.NewAccountUsecase(accountRepo),
+		usecase.NewTransferUsecase(transferRepo, accountRepo),
+	)
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	client := requests.Client{Host: ts.URL}
 
 	t.Run("Create transfer with success should update users balances with success", func(t *testing.T) {
-
-		pgxConn, _ := postgres.OpenConnection()
-		accountRepo := repository.NewAccountRepo(pgxConn)
-		transferRepo := repository.NewTransferRepo(pgxConn)
-		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo),
-			usecase.NewTransferUsecase(transferRepo, accountRepo),
-		)
-		ts := httptest.NewServer(router)
-		defer ts.Close()
-		client := requests.Client{Host: ts.URL}
-
 		testAccount1 := account.Account{Balance: 0.1, Name: "Maria", CPF: "12345678901"}
-		err = accountRepo.CreateAccount(context.Background(), &testAccount1)
+		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
@@ -79,19 +74,8 @@ func TestCreateTransfer(t *testing.T) {
 		originalOriginAccountBalance := 0.1
 		originalDestineAccountBalance := 0.0
 
-		pgxConn, _ := postgres.OpenConnection()
-		accountRepo := repository.NewAccountRepo(pgxConn)
-		transferRepo := repository.NewTransferRepo(pgxConn)
-		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo),
-			usecase.NewTransferUsecase(transferRepo, accountRepo),
-		)
-		ts := httptest.NewServer(router)
-		defer ts.Close()
-		client := requests.Client{Host: ts.URL}
-
 		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "12345678901"}
-		err = accountRepo.CreateAccount(context.Background(), &testAccount1)
+		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
@@ -120,7 +104,7 @@ func TestCreateTransfer(t *testing.T) {
 		if transferResponse.Message != transfer.ErrInsufficientFundsToMakeTransaction.Error() {
 			t.Errorf(
 				"Response message should be %v and not %v",
-				transfer.ErrInsufficientFundsToMakeTransaction,
+				transfer.ErrInsufficientFundsToMakeTransaction.Error(),
 				transferResponse.Message,
 			)
 		}
@@ -142,6 +126,26 @@ func TestCreateTransfer(t *testing.T) {
 		}
 	})
 	t.Run("Create transfer with non existing account(s) should fail", func(t *testing.T) {
-		//TODO Implement
+		transferRequest := rest.CreateTransferRequest{OriginAccountID: 132, DestinationAccountID: 1322, Amount: 1}
+		resp, _ := client.CreateTransfer(transferRequest)
+
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("Transfer creation request response should be BAD REQUEST not %v", resp.Status)
+		}
+
+		var transferResponse rest.ErrorResponse
+		err := json.NewDecoder(resp.Body).Decode(&transferResponse)
+		if err != nil {
+			t.Errorf("Failed to parse create request response: %v", err)
+			t.FailNow()
+		}
+
+		if transferResponse.Message != account.ErrAccountNotFound.Error() {
+			t.Errorf(
+				"Response message should be %v and not %v",
+				account.ErrAccountNotFound.Error(),
+				transferResponse.Message,
+			)
+		}
 	})
 }

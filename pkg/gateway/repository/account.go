@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"local/panda-killer/pkg/domain/entity/account"
 
 	"github.com/jackc/pgx/v4"
@@ -51,10 +50,13 @@ func (r AccountRepoImpl) GetAccounts(ctx context.Context) ([]*account.Account, e
 }
 
 func (r AccountRepoImpl) GetAccount(ctx context.Context, accountID int) (*account.Account, error) {
-	row := r.conn.QueryRow(ctx, "SELECT account_id, name, cpf, secret, balance, created_at FROM account WHERE account_id = $1 FETCH FIRST ROW ONLY;", fmt.Sprint(accountID))
+	row := r.conn.QueryRow(ctx, "SELECT account_id, name, cpf, secret, balance, created_at FROM account WHERE account_id = $1 FETCH FIRST ROW ONLY;", accountID)
 
 	var a account.Account
 	err := row.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
+	if err == pgx.ErrNoRows {
+		return &account.Account{}, nil
+	}
 
 	return &a, err
 }
