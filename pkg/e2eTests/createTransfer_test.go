@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
 	"local/panda-killer/pkg/gateway/db/postgres"
@@ -15,12 +16,13 @@ import (
 )
 
 func TestCreateTransfer(t *testing.T) {
+	err := postgres.RunMigrations()
+	if err != nil {
+		t.Errorf("Failed to run migrations: %v", err)
+		t.FailNow()
+	}
+
 	t.Run("Create transfer with success should update users balances with success", func(t *testing.T) {
-		err := postgres.RunMigrations()
-		if err != nil {
-			t.Errorf("Failed to run migrations: %v", err)
-			t.FailNow()
-		}
 
 		pgxConn, _ := postgres.OpenConnection()
 		accountRepo := repository.NewAccountRepo(pgxConn)
@@ -74,7 +76,70 @@ func TestCreateTransfer(t *testing.T) {
 		}
 	})
 	t.Run("Create transfer without insufficient balance should fail", func(t *testing.T) {
-		//TODO Implement
+		originalOriginAccountBalance := 0.1
+		originalDestineAccountBalance := 0.0
+
+		pgxConn, _ := postgres.OpenConnection()
+		accountRepo := repository.NewAccountRepo(pgxConn)
+		transferRepo := repository.NewTransferRepo(pgxConn)
+		router := rest.CreateRouter(
+			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewTransferUsecase(transferRepo, accountRepo),
+		)
+		ts := httptest.NewServer(router)
+		defer ts.Close()
+		client := requests.Client{Host: ts.URL}
+
+		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "12345678901"}
+		err = accountRepo.CreateAccount(context.Background(), &testAccount1)
+		if err != nil {
+			t.Errorf("Failed to create test account1: %v", err)
+		}
+
+		testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "12345678901"}
+		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
+		if err != nil {
+			t.Errorf("Failed to create test account2: %v", err)
+			t.FailNow()
+		}
+
+		transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: 1}
+		resp, _ := client.CreateTransfer(transferRequest)
+
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("Transfer creation request response should be BAD REQUEST not %v", resp.Status)
+		}
+
+		var transferResponse rest.ErrorResponse
+		err = json.NewDecoder(resp.Body).Decode(&transferResponse)
+		if err != nil {
+			t.Errorf("Failed to parse create request response: %v", err)
+			t.FailNow()
+		}
+
+		if transferResponse.Message != transfer.ErrInsufficientFundsToMakeTransaction {
+			t.Errorf(
+				"Response message should be %v and not %v",
+				transfer.ErrInsufficientFundsToMakeTransaction,
+				transferResponse.Message,
+			)
+		}
+
+		updatedOriginAccount, err := accountRepo.GetAccount(context.Background(), testAccount1.ID)
+		if err != nil {
+			t.Errorf("Failed to retrieve updatedOriginAccount: %v", err)
+		}
+		updatedDestinationAccount, err := accountRepo.GetAccount(context.Background(), testAccount2.ID)
+		if err != nil {
+			t.Errorf("Failed to retrieve updatedDestinationAccount: %v", err)
+		}
+
+		if updatedOriginAccount.Balance != originalOriginAccountBalance {
+			t.Errorf("It was expected to origin account not to change")
+		}
+		if updatedDestinationAccount.Balance != originalDestineAccountBalance {
+			t.Errorf("It was expected to destination account not to change")
+		}
 	})
 	t.Run("Create transfer with non existing account(s) should fail", func(t *testing.T) {
 		//TODO Implement
