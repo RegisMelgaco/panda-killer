@@ -17,36 +17,31 @@ func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.
 	return &TransferUsecase{transferRepo: transferRepo, accountRepo: accountRepo}
 }
 
-func (u TransferUsecase) CreateTransfer(ctx context.Context, newTransfer *transfer.Transfer) error {
-	entry := logrus.WithField("transfer", newTransfer)
+func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID int, amount float64) (transfer.Transfer, error) {
+	entry := logrus.WithFields(logrus.Fields{
+		"originAccountID":      originAccountID,
+		"destinationAccountID": destinationAccountID,
+		"amount":               amount,
+	})
 
-	originAccount, err := u.accountRepo.GetAccount(ctx, newTransfer.AccountOrigin)
+	originAccount, err := u.accountRepo.GetAccount(ctx, originAccountID)
 	if err != nil {
 		entry.Errorf("Failed to load originAccount on transfer creation with internal error: %v", err)
-		return err
+		return transfer.Transfer{}, err
 	}
-	destinationAccount, err := u.accountRepo.GetAccount(ctx, newTransfer.AccountDestination)
+	destinationAccount, err := u.accountRepo.GetAccount(ctx, destinationAccountID)
 	if err != nil {
 		entry.Errorf("Failed to load destinationAccount on transfer creation with internal error: %v", err)
-		return err
+		return transfer.Transfer{}, err
 	}
 
-	originNewBalance := safeSubtraction(originAccount.Balance, newTransfer.Amount)
-	destinationNewBalance := safeSum(destinationAccount.Balance, newTransfer.Amount)
+	newTransfer := transfer.NewTransfer(originAccount, destinationAccount, amount)
 
-	err = u.transferRepo.CreateTransferAndUpdateAccountsBalances(ctx, newTransfer, originNewBalance, destinationNewBalance)
+	err = u.transferRepo.CreateTransferAndUpdateAccountsBalances(ctx, newTransfer)
 	if err != nil {
 		logrus.New().WithField("transfer", newTransfer).Errorf("Failed to create transaction with internal error: %v", err)
-		return err
+		return transfer.Transfer{}, err
 	}
 
-	return nil
-}
-
-func safeSubtraction(a, b float64) float64 {
-	return float64(float64(int(a*100)-int(b*100)) / 100)
-}
-
-func safeSum(a, b float64) float64 {
-	return float64(float64(int(a*100)+int(b*100)) / 100)
+	return *newTransfer, nil
 }

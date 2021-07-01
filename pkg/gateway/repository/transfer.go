@@ -20,27 +20,36 @@ const (
 	updateAccountBalanceSql = "UPDATE account SET balance = $1 WHERE account_id = $2;"
 )
 
-func (r TransferRepoImpl) CreateTransferAndUpdateAccountsBalances(ctx context.Context, newTransfer *transfer.Transfer, originNewBalance, destinationNewBalance float64) error {
+func (r TransferRepoImpl) CreateTransferAndUpdateAccountsBalances(ctx context.Context, newTransfer *transfer.Transfer) error {
 	tx, err := r.conn.Begin(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = tx.QueryRow(ctx, createTransferSql, newTransfer.AccountOrigin, newTransfer.AccountDestination, newTransfer.Amount, newTransfer.CreatedAt).Scan(&newTransfer.ID)
+	err = tx.QueryRow(
+		ctx,
+		createTransferSql,
+		newTransfer.OriginAccount.ID,
+		newTransfer.DestinationAccount.ID,
+		newTransfer.Amount,
+		newTransfer.CreatedAt,
+	).Scan(&newTransfer.ID)
 	if err != nil {
+		tx.Rollback(ctx)
 		return err
 	}
 
-	_, err = tx.Exec(ctx, updateAccountBalanceSql, originNewBalance, newTransfer.AccountOrigin)
+	_, err = tx.Exec(ctx, updateAccountBalanceSql, newTransfer.OriginAccount.Balance, newTransfer.OriginAccount.ID)
 	if err != nil {
+		tx.Rollback(ctx)
 		return err
 	}
-	_, err = tx.Exec(ctx, updateAccountBalanceSql, destinationNewBalance, newTransfer.AccountDestination)
+	_, err = tx.Exec(ctx, updateAccountBalanceSql, newTransfer.DestinationAccount.Balance, newTransfer.DestinationAccount.ID)
 	if err != nil {
+		tx.Rollback(ctx)
 		return err
 	}
 
 	err = tx.Commit(ctx)
-
 	return err
 }

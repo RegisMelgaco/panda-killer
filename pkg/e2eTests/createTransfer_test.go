@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
-	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
 	"local/panda-killer/pkg/gateway/db/postgres"
@@ -47,8 +46,8 @@ func TestCreateTransfer(t *testing.T) {
 			t.FailNow()
 		}
 
-		testTransfer := transfer.Transfer{AccountOrigin: testAccount1.ID, AccountDestination: testAccount2.ID, Amount: 0.1}
-		resp, _ := client.CreateTransfer(testTransfer)
+		transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: 0.1}
+		resp, _ := client.CreateTransfer(transferRequest)
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Transfer creation request response should be OK not %v", resp.Status)
