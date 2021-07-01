@@ -117,7 +117,7 @@ func TestCreateTransfer(t *testing.T) {
 			t.FailNow()
 		}
 
-		if transferResponse.Message != transfer.ErrInsufficientFundsToMakeTransaction {
+		if transferResponse.Message != transfer.ErrInsufficientFundsToMakeTransaction.Error() {
 			t.Errorf(
 				"Response message should be %v and not %v",
 				transfer.ErrInsufficientFundsToMakeTransaction,

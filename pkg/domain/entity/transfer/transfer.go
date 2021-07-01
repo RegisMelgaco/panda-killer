@@ -12,14 +12,18 @@ type Transfer struct {
 	CreatedAt                         time.Time
 }
 
-func NewTransfer(originAccount, destinationAccount *account.Account, amount float64) *Transfer {
+func NewTransfer(originAccount, destinationAccount *account.Account, amount float64) (*Transfer, error) {
+	if originAccount.Balance < amount {
+		return &Transfer{}, ErrInsufficientFundsToMakeTransaction
+	}
+
 	originAccount.Balance = safeSubtraction(originAccount.Balance, amount)
 	destinationAccount.Balance = safeSum(destinationAccount.Balance, amount)
 	return &Transfer{
 		OriginAccount:      originAccount,
 		DestinationAccount: destinationAccount,
 		Amount:             amount,
-	}
+	}, nil
 }
 
 func safeSubtraction(a, b float64) float64 {

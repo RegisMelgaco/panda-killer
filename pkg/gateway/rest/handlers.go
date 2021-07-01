@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"net/http"
 	"strconv"
@@ -98,6 +99,11 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 			body.DestinationAccountID,
 			body.Amount,
 		)
+		if err == transfer.ErrInsufficientFundsToMakeTransaction {
+			rw.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(rw).Encode(ErrorResponse{Message: err.Error()})
+			return
+		}
 		if err != nil {
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
