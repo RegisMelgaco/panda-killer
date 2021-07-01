@@ -87,7 +87,7 @@ func TestCreateTransfer(t *testing.T) {
 			t.FailNow()
 		}
 
-		transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: 1}
+		transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: originalOriginAccountBalance + 1}
 		resp, _ := client.CreateTransfer(transferRequest)
 
 		if resp.StatusCode != http.StatusBadRequest {
