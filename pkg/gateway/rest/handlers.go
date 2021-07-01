@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"net/http"
 	"strconv"
@@ -83,20 +84,22 @@ func GetAccountBalance(usecase *usecase.AccountUsecase) http.HandlerFunc {
 	}
 }
 
-type AccountBalanceResponse struct {
-	Balance float64 `json:"balance"`
-}
+func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		var newTransfer transfer.Transfer
+		err := json.NewDecoder(r.Body).Decode(&newTransfer)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
-type ErrorResponse struct {
-	Message string
-}
+		err = transferUsecase.CreateTransfer(r.Context(), &newTransfer)
+		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-type CreatedAccountResponse struct {
-	ID int `json:"id"`
-}
-
-type GetAccountResponse struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	CPF  string `json:"cpf"`
+		rw.WriteHeader(http.StatusCreated)
+		json.NewEncoder(rw).Encode(newTransfer)
+	}
 }

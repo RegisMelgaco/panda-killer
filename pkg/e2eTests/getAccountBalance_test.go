@@ -21,8 +21,10 @@ func TestGetAccountBalance(t *testing.T) {
 
 		pgxConn, _ := postgres.OpenConnection()
 		accountRepo := repository.NewAccountRepo(pgxConn)
+		transferRepo := repository.NewTransferRepo(pgxConn)
 		router := rest.CreateRouter(
 			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewTransferUsecase(transferRepo, accountRepo),
 		)
 		ts := httptest.NewServer(router)
 		defer ts.Close()
@@ -57,8 +59,10 @@ func TestGetAccountBalance(t *testing.T) {
 
 		pgxConn, _ := postgres.OpenConnection()
 		accountRepo := repository.NewAccountRepo(pgxConn)
+		transferRepo := repository.NewTransferRepo(pgxConn)
 		router := rest.CreateRouter(
 			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewTransferUsecase(transferRepo, accountRepo),
 		)
 		ts := httptest.NewServer(router)
 		defer ts.Close()

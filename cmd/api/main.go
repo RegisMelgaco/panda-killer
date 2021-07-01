@@ -23,12 +23,11 @@ func main() {
 	}
 	postgres.RunMigrations()
 
+	accountRepo := repository.NewAccountRepo(conn)
+	transferRepo := repository.NewTransferRepo(conn)
 	router := rest.CreateRouter(
-		usecase.NewAccountUsecase(
-			repository.NewAccountRepo(
-				conn,
-			),
-		),
+		usecase.NewAccountUsecase(accountRepo),
+		usecase.NewTransferUsecase(transferRepo, accountRepo),
 	)
 
 	port, err := config.GetRestApiPort()

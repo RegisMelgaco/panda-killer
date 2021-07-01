@@ -17,19 +17,25 @@ import (
 
 func TestCreateTransfer(t *testing.T) {
 	t.Run("Create transfer with success should update users balances with success", func(t *testing.T) {
-		postgres.RunMigrations()
+		err := postgres.RunMigrations()
+		if err != nil {
+			t.Errorf("Failed to run migrations: %v", err)
+			t.FailNow()
+		}
 
 		pgxConn, _ := postgres.OpenConnection()
 		accountRepo := repository.NewAccountRepo(pgxConn)
+		transferRepo := repository.NewTransferRepo(pgxConn)
 		router := rest.CreateRouter(
 			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewTransferUsecase(transferRepo, accountRepo),
 		)
 		ts := httptest.NewServer(router)
 		defer ts.Close()
 		client := requests.Client{Host: ts.URL}
 
 		testAccount1 := account.Account{Balance: 0.1, Name: "Maria", CPF: "12345678901"}
-		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
+		err = accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
@@ -44,7 +50,7 @@ func TestCreateTransfer(t *testing.T) {
 		testTransfer := transfer.Transfer{AccountOrigin: testAccount1.ID, AccountDestination: testAccount2.ID, Amount: 0.1}
 		resp, _ := client.CreateTransfer(testTransfer)
 
-		if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Transfer creation request response should be OK not %v", resp.Status)
 		}
 
@@ -58,11 +64,20 @@ func TestCreateTransfer(t *testing.T) {
 		if respBodyObj.ID < 1 {
 			t.Errorf("Response body with invalid id: %v", respBodyObj.ID)
 		}
+
+		a1, _ := accountRepo.GetAccount(context.Background(), testAccount1.ID)
+		if a1.Balance != 0 {
+			t.Errorf("Expected balance for account 1 was 0 and not %v", a1.Balance)
+		}
+		a2, _ := accountRepo.GetAccount(context.Background(), testAccount2.ID)
+		if a2.Balance != 0.3 {
+			t.Errorf("Expected balance for account 2 was 0.3 and not %v", a2.Balance)
+		}
 	})
 	t.Run("Create transfer without insufficient balance should fail", func(t *testing.T) {
 		//TODO Implement
 	})
-	t.Run("Create transfer with not existing account(s) should fail", func(t *testing.T) {
+	t.Run("Create transfer with non existing account(s) should fail", func(t *testing.T) {
 		//TODO Implement
 	})
 }
