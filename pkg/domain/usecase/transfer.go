@@ -4,23 +4,23 @@ import (
 	"context"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/transfer"
+	"sync"
 
 	"github.com/sirupsen/logrus"
-	"golang.org/x/sync/semaphore"
 )
 
 type TransferUsecase struct {
 	transferRepo transfer.TransferRepo
 	accountRepo  account.AccountRepo
 
-	sem *semaphore.Weighted
+	mu *sync.Mutex
 }
 
 func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.AccountRepo) *TransferUsecase {
 	return &TransferUsecase{
 		transferRepo: transferRepo,
 		accountRepo:  accountRepo,
-		sem:          semaphore.NewWeighted(1),
+		mu:           &sync.Mutex{},
 	}
 }
 
@@ -30,6 +30,9 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 		"destinationAccountID": destinationAccountID,
 		"amount":               amount,
 	})
+
+	u.mu.Lock()
+	defer u.mu.Unlock()
 
 	originAccount, err := u.accountRepo.GetAccount(ctx, originAccountID)
 	if err != nil {
@@ -50,8 +53,6 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 		return &transfer.Transfer{}, account.ErrAccountNotFound
 	}
 
-	u.sem.Acquire(ctx, 1)
-
 	newTransfer, err := transfer.NewTransfer(originAccount, destinationAccount, amount)
 	if err != nil {
 		return &transfer.Transfer{}, err
@@ -62,8 +63,6 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 		logrus.New().WithField("transfer", newTransfer).Errorf("Failed to create transaction with internal error: %v", err)
 		return &transfer.Transfer{}, err
 	}
-
-	u.sem.Release(1)
 
 	return newTransfer, nil
 }
