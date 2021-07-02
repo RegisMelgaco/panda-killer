@@ -6,15 +6,22 @@ import (
 	"local/panda-killer/pkg/domain/entity/transfer"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/semaphore"
 )
 
 type TransferUsecase struct {
 	transferRepo transfer.TransferRepo
 	accountRepo  account.AccountRepo
+
+	sem *semaphore.Weighted
 }
 
 func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.AccountRepo) *TransferUsecase {
-	return &TransferUsecase{transferRepo: transferRepo, accountRepo: accountRepo}
+	return &TransferUsecase{
+		transferRepo: transferRepo,
+		accountRepo:  accountRepo,
+		sem:          semaphore.NewWeighted(1),
+	}
 }
 
 func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID int, amount float64) (*transfer.Transfer, error) {
@@ -43,6 +50,8 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 		return &transfer.Transfer{}, account.ErrAccountNotFound
 	}
 
+	u.sem.Acquire(ctx, 1)
+
 	newTransfer, err := transfer.NewTransfer(originAccount, destinationAccount, amount)
 	if err != nil {
 		return &transfer.Transfer{}, err
@@ -53,6 +62,8 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 		logrus.New().WithField("transfer", newTransfer).Errorf("Failed to create transaction with internal error: %v", err)
 		return &transfer.Transfer{}, err
 	}
+
+	u.sem.Release(1)
 
 	return newTransfer, nil
 }
