@@ -187,5 +187,36 @@ func TestCreateTransfer(t *testing.T) {
 			t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferAmountShouldBeGreatterThanZero.Error(), respBody.Message)
 		}
 	})
-	// t.Run("Should not be possible to transfer to your self", func(t *testing.T) {})
+	t.Run("Should not be possible to transfer to your self", func(t *testing.T) {
+		testAccount := account.Account{Name: "Maria", CPF: "12345678901"}
+		err := accountRepo.CreateAccount(context.Background(), &testAccount)
+		if err != nil {
+			t.Errorf("Failed to create test account1: %v", err)
+		}
+
+		resp, err := client.CreateTransfer(rest.CreateTransferRequest{
+			OriginAccountID:      testAccount.ID,
+			DestinationAccountID: testAccount.ID,
+			Amount:               42,
+		})
+		if err != nil {
+			t.Errorf("Failed to make request: %v", err)
+			t.FailNow()
+		}
+
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("Response status should be BAD REQUEST and not %v", resp.Status)
+		}
+
+		var respBody rest.ErrorResponse
+		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		if err != nil {
+			t.Errorf("Failed to parse response body: %v", err)
+			t.FailNow()
+		}
+
+		if respBody.Message != transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent.Error() {
+			t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent.Error(), respBody.Message)
+		}
+	})
 }

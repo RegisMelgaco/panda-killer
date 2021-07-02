@@ -13,6 +13,9 @@ type Transfer struct {
 }
 
 func NewTransfer(originAccount, destinationAccount *account.Account, amount float64) (*Transfer, error) {
+	if originAccount.ID == destinationAccount.ID {
+		return &Transfer{}, ErrTransferOriginAndDestinationNeedToBeDiffrent
+	}
 	if amount <= 0 {
 		return &Transfer{}, ErrTransferAmountShouldBeGreatterThanZero
 	}
