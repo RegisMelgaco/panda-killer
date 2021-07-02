@@ -3,7 +3,7 @@ package rest
 import "time"
 
 type AccountBalanceResponse struct {
-	Balance float64 `json:"balance"`
+	Balance int `json:"balance"`
 }
 
 type ErrorResponse struct {
@@ -26,7 +26,7 @@ type CreateTransferResponse struct {
 
 type GetTransferResponse struct {
 	ID                   int       `json:"id"`
-	Amount               float64   `json:"amount"`
+	Amount               int       `json:"amount"`
 	OriginAccountID      int       `json:"origin_account_id"`
 	DestinationAccountID int       `json:"destination_account_id"`
 	CreatedAt            time.Time `json:"created_at"`

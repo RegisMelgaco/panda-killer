@@ -8,11 +8,11 @@ import (
 type Transfer struct {
 	ID                                int
 	OriginAccount, DestinationAccount *account.Account
-	Amount                            float64
+	Amount                            int
 	CreatedAt                         time.Time
 }
 
-func NewTransfer(originAccount, destinationAccount *account.Account, amount float64) (*Transfer, error) {
+func NewTransfer(originAccount, destinationAccount *account.Account, amount int) (*Transfer, error) {
 	if originAccount.ID == destinationAccount.ID {
 		return &Transfer{}, ErrTransferOriginAndDestinationNeedToBeDiffrent
 	}
@@ -23,20 +23,12 @@ func NewTransfer(originAccount, destinationAccount *account.Account, amount floa
 		return &Transfer{}, ErrInsufficientFundsToMakeTransaction
 	}
 
-	originAccount.Balance = safeSubtraction(originAccount.Balance, amount)
-	destinationAccount.Balance = safeSum(destinationAccount.Balance, amount)
+	originAccount.Balance = originAccount.Balance - amount
+	destinationAccount.Balance = destinationAccount.Balance + amount
 	return &Transfer{
 		OriginAccount:      originAccount,
 		DestinationAccount: destinationAccount,
 		Amount:             amount,
 		CreatedAt:          time.Now(),
 	}, nil
-}
-
-func safeSubtraction(a, b float64) float64 {
-	return float64(float64(int(a*100)-int(b*100)) / 100)
-}
-
-func safeSum(a, b float64) float64 {
-	return float64(float64(int(a*100)+int(b*100)) / 100)
 }

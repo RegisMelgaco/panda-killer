@@ -24,7 +24,7 @@ func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.
 	}
 }
 
-func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID int, amount float64) (*transfer.Transfer, error) {
+func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID int, amount int) (*transfer.Transfer, error) {
 	entry := logrus.WithFields(logrus.Fields{
 		"originAccountID":      originAccountID,
 		"destinationAccountID": destinationAccountID,

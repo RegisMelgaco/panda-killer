@@ -30,7 +30,7 @@ func TestGetAccountBalance(t *testing.T) {
 		defer ts.Close()
 		client := requests.Client{Host: ts.URL}
 
-		expectedBalance := 42.0
+		expectedBalance := 42
 		testAccount := account.Account{Name: "João", CPF: "1235678901", Balance: expectedBalance}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount)
 		if err != nil {

@@ -58,7 +58,7 @@ func (u AccountUsecase) CreateAccount(ctx context.Context, newAccount *account.A
 	return nil
 }
 
-func (u AccountUsecase) GetBalance(ctx context.Context, accountID int) (float64, error) {
+func (u AccountUsecase) GetBalance(ctx context.Context, accountID int) (int, error) {
 	entry := logrus.WithField("accountID", accountID)
 
 	a, err := u.repo.GetAccount(ctx, accountID)

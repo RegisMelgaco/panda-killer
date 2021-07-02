@@ -4,7 +4,7 @@ import "time"
 
 type Account struct {
 	ID                int
-	Balance           float64
+	Balance           int
 	Name, CPF, Secret string
 	CreatedAt         time.Time
 }

@@ -30,20 +30,20 @@ func TestCreateTransfer(t *testing.T) {
 	client := requests.Client{Host: ts.URL}
 
 	t.Run("Create transfer with success should update users balances with success", func(t *testing.T) {
-		testAccount1 := account.Account{Balance: 0.1, Name: "Maria", CPF: "12345678901"}
+		testAccount1 := account.Account{Balance: 1, Name: "Maria", CPF: "12345678901"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Balance: 0.2, Name: "Joana", CPF: "12345678901"}
+		testAccount2 := account.Account{Balance: 2, Name: "Joana", CPF: "12345678901"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)
 			t.FailNow()
 		}
 
-		transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: 0.1}
+		transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: 1}
 		resp, _ := client.CreateTransfer(transferRequest)
 
 		if resp.StatusCode != http.StatusCreated {
@@ -66,13 +66,13 @@ func TestCreateTransfer(t *testing.T) {
 			t.Errorf("Expected balance for account 1 was 0 and not %v", a1.Balance)
 		}
 		a2, _ := accountRepo.GetAccount(context.Background(), testAccount2.ID)
-		if a2.Balance != 0.3 {
-			t.Errorf("Expected balance for account 2 was 0.3 and not %v", a2.Balance)
+		if a2.Balance != 3 {
+			t.Errorf("Expected balance for account 2 was 3 and not %v", a2.Balance)
 		}
 	})
 	t.Run("Create transfer without insufficient balance should fail", func(t *testing.T) {
-		originalOriginAccountBalance := 0.1
-		originalDestineAccountBalance := 0.0
+		originalOriginAccountBalance := 1
+		originalDestineAccountBalance := 0
 
 		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "12345678901"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
