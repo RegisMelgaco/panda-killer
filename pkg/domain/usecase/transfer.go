@@ -2,37 +2,66 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"sync"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/singleflight"
 )
 
 type TransferUsecase struct {
 	transferRepo transfer.TransferRepo
 	accountRepo  account.AccountRepo
-
-	mu *sync.Mutex
+	group        *singleflight.Group
+	mux          *sync.Mutex
 }
 
 func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.AccountRepo) *TransferUsecase {
 	return &TransferUsecase{
 		transferRepo: transferRepo,
 		accountRepo:  accountRepo,
-		mu:           &sync.Mutex{},
+
+		group: &singleflight.Group{},
+		mux:   &sync.Mutex{},
 	}
 }
 
-func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID int, amount int) (*transfer.Transfer, error) {
+type createTransferFunc func(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error)
+
+func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
+	return u.handleCreateTransferParallelism(ctx, originAccountID, destinationAccountID, amount, u.handleCreateTransferBussLogic)
+}
+
+func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, originAccountID, destinationAccountID, amount int, f createTransferFunc) (*transfer.Transfer, error) {
+	u.mux.Lock()
+
+	// Prevents a dead lock with it self where is called Do two times on same key by same goroutine.
+	if originAccountID == destinationAccountID {
+		return &transfer.Transfer{}, transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent
+	}
+
+	t, err, _ := u.group.Do(fmt.Sprint(originAccountID), func() (interface{}, error) {
+		defer u.group.Forget(fmt.Sprint(originAccountID))
+		t, err, _ := u.group.Do(fmt.Sprint(destinationAccountID), func() (interface{}, error) {
+			defer u.group.Forget(fmt.Sprint(destinationAccountID))
+			defer u.mux.Unlock()
+
+			return f(ctx, originAccountID, destinationAccountID, amount)
+		})
+		return t, err
+	})
+
+	return t.(*transfer.Transfer), err
+}
+
+func (u TransferUsecase) handleCreateTransferBussLogic(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
 	entry := logrus.WithFields(logrus.Fields{
 		"originAccountID":      originAccountID,
 		"destinationAccountID": destinationAccountID,
 		"amount":               amount,
 	})
-
-	u.mu.Lock()
-	defer u.mu.Unlock()
 
 	originAccount, err := u.accountRepo.GetAccount(ctx, originAccountID)
 	if err != nil {
