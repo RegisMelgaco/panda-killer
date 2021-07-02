@@ -118,3 +118,32 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 		json.NewEncoder(rw).Encode(CreateTransferResponse{ID: createdTransfer.ID})
 	}
 }
+
+func ListTransfers(u *usecase.TransferUsecase) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		accountIDStr := chi.URLParam(r, "accountID")
+		accountID, _ := strconv.Atoi(accountIDStr)
+
+		transfers, err := u.ListTransfers(r.Context(), accountID)
+		if err != nil {
+			// TODO Implement proper error handling
+			panic(err)
+		}
+
+		rw.WriteHeader(http.StatusOK)
+
+		var response []GetTransferResponse
+		for _, t := range transfers {
+			r := GetTransferResponse{
+				ID:                   t.ID,
+				Amount:               t.Amount,
+				OriginAccountID:      t.OriginAccount.ID,
+				DestinationAccountID: t.DestinationAccount.ID,
+				CreatedAt:            t.CreatedAt,
+			}
+			response = append(response, r)
+		}
+
+		json.NewEncoder(rw).Encode(response)
+	}
+}

@@ -23,6 +23,7 @@ func NewTransfer(originAccount, destinationAccount *account.Account, amount floa
 		OriginAccount:      originAccount,
 		DestinationAccount: destinationAccount,
 		Amount:             amount,
+		CreatedAt:          time.Now(),
 	}, nil
 }
 

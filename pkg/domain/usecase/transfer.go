@@ -39,7 +39,7 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 		return &transfer.Transfer{}, err
 	}
 	if destinationAccount.ID == 0 {
-		entry.Warnf("Failed to create account with nonexisting destinationAccount")
+		entry.Warn("Failed to create account with nonexisting destinationAccount")
 		return &transfer.Transfer{}, account.ErrAccountNotFound
 	}
 
@@ -55,4 +55,16 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 	}
 
 	return newTransfer, nil
+}
+
+func (u TransferUsecase) ListTransfers(ctx context.Context, loggedAccountID int) ([]*transfer.Transfer, error) {
+	entry := logrus.WithField("accountID", loggedAccountID)
+
+	transfers, err := u.transferRepo.GetTransfersCantainingAccount(ctx, loggedAccountID)
+	if err != nil {
+		entry.Errorf("Failed to list transfer while trying to load stored transfers: %v", err)
+		return []*transfer.Transfer{}, nil
+	}
+
+	return transfers, nil
 }

@@ -29,6 +29,7 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *useca
 
 	r.Route("/transfers", func(r chi.Router) {
 		r.Post("/", CreateTransfer(transferUsecase))
+		r.Get("/{accountID}", ListTransfers(transferUsecase))
 	})
 
 	return r
