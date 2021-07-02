@@ -99,12 +99,9 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 			body.DestinationAccountID,
 			body.Amount,
 		)
-		if err == transfer.ErrInsufficientFundsToMakeTransaction {
-			rw.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(rw).Encode(ErrorResponse{Message: err.Error()})
-			return
-		}
-		if err == account.ErrAccountNotFound {
+		if err == transfer.ErrInsufficientFundsToMakeTransaction ||
+			err == transfer.ErrTransferAmountShouldBeGreatterThanZero ||
+			err == account.ErrAccountNotFound {
 			rw.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(rw).Encode(ErrorResponse{Message: err.Error()})
 			return

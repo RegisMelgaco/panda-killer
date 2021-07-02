@@ -126,7 +126,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 	})
 	t.Run("Create transfer with non existing account(s) should fail", func(t *testing.T) {
-		transferRequest := rest.CreateTransferRequest{OriginAccountID: 132, DestinationAccountID: 1322, Amount: 1}
+		transferRequest := rest.CreateTransferRequest{OriginAccountID: 132, DestinationAccountID: 13212, Amount: 1}
 		resp, _ := client.CreateTransfer(transferRequest)
 
 		if resp.StatusCode != http.StatusBadRequest {
@@ -148,4 +148,44 @@ func TestCreateTransfer(t *testing.T) {
 			)
 		}
 	})
+	t.Run("Create transfer with value lesser than zero should fail", func(t *testing.T) {
+		testAccount1 := account.Account{Name: "Maria", CPF: "12345678901"}
+		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
+		if err != nil {
+			t.Errorf("Failed to create test account1: %v", err)
+		}
+
+		testAccount2 := account.Account{Name: "Joana", CPF: "12345678901"}
+		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
+		if err != nil {
+			t.Errorf("Failed to create test account2: %v", err)
+			t.FailNow()
+		}
+
+		resp, err := client.CreateTransfer(rest.CreateTransferRequest{
+			OriginAccountID:      testAccount1.ID,
+			DestinationAccountID: testAccount2.ID,
+			Amount:               0,
+		})
+		if err != nil {
+			t.Errorf("Failed to make request: %v", err)
+			t.FailNow()
+		}
+
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("Response status should be BAD REQUEST and not %v", resp.Status)
+		}
+
+		var respBody rest.ErrorResponse
+		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		if err != nil {
+			t.Errorf("Failed to parse response body: %v", err)
+			t.FailNow()
+		}
+
+		if respBody.Message != transfer.ErrTransferAmountShouldBeGreatterThanZero.Error() {
+			t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferAmountShouldBeGreatterThanZero.Error(), respBody.Message)
+		}
+	})
+	// t.Run("Should not be possible to transfer to your self", func(t *testing.T) {})
 }

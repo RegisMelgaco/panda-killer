@@ -13,6 +13,9 @@ type Transfer struct {
 }
 
 func NewTransfer(originAccount, destinationAccount *account.Account, amount float64) (*Transfer, error) {
+	if amount <= 0 {
+		return &Transfer{}, ErrTransferAmountShouldBeGreatterThanZero
+	}
 	if originAccount.Balance < amount {
 		return &Transfer{}, ErrInsufficientFundsToMakeTransaction
 	}
