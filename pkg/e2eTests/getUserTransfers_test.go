@@ -129,7 +129,4 @@ func TestGetUserTransfers(t *testing.T) {
 			t.Errorf("Expected request response body to be %v and not %v", expectedResponse, requestedTransfers)
 		}
 	})
-	t.Run("Get user transfers with nonexisting user should fail and return an error message.", func(t *testing.T) {
-		//TODO Implement
-	})
 }
