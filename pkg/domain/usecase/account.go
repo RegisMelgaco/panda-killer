@@ -3,18 +3,19 @@ package usecase
 import (
 	"context"
 	"local/panda-killer/pkg/domain/entity/account"
-	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
 type AccountUsecase struct {
-	repo account.AccountRepo
+	repo         account.AccountRepo
+	securityAlgo account.AccountSecurityAlgorithms
 }
 
-func NewAccountUsecase(accountRepo account.AccountRepo) *AccountUsecase {
+func NewAccountUsecase(accountRepo account.AccountRepo, securityAlgo account.AccountSecurityAlgorithms) *AccountUsecase {
 	return &AccountUsecase{
-		repo: accountRepo,
+		repo:         accountRepo,
+		securityAlgo: securityAlgo,
 	}
 }
 
@@ -30,32 +31,31 @@ func (u AccountUsecase) GetAccounts(ctx context.Context) ([]*account.Account, er
 	return accounts, err
 }
 
-func (u AccountUsecase) CreateAccount(ctx context.Context, newAccount *account.Account) error {
-	entry := logrus.WithField("account", newAccount)
+func (u AccountUsecase) CreateAccount(ctx context.Context, balance int, name string, cpf string, password string) (*account.Account, error) {
+	entry := logrus.WithFields(logrus.Fields{
+		"balance": balance, "name": name, "cpf": cpf,
+	})
 
-	var err error
-	if len(newAccount.Name) == 0 {
-		err = account.ErrAccountNameIsObligatory
-	}
-	if len(newAccount.CPF) != 11 {
-		err = account.ErrAccountCPFShouldHaveLength11
+	secret, err := u.securityAlgo.GenerateSecretFromPassword(password)
+	if err != nil {
+		entry.Errorf("Failed to create account while genereting secret: %v", err)
+		return &account.Account{}, err
 	}
 
+	newAccount, err := account.CreateNewAccount(balance, name, cpf, secret)
 	if err != nil {
 		entry.Infof("Create account failed with domain error: %v", err)
-		return err
+		return &account.Account{}, err
 	}
-
-	newAccount.CreatedAt = time.Now()
 
 	err = u.repo.CreateAccount(ctx, newAccount)
 	if err != nil {
 		entry.Infof("Create account failed with internal error: %v", err)
-		return err
+		return &account.Account{}, err
 	}
 
 	entry.Info("Created account with success")
-	return nil
+	return newAccount, err
 }
 
 func (u AccountUsecase) GetBalance(ctx context.Context, accountID int) (int, error) {

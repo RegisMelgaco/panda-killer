@@ -18,9 +18,9 @@ func NewAccountRepo(conn *pgx.Conn) account.AccountRepo {
 func (r AccountRepoImpl) CreateAccount(ctx context.Context, account *account.Account) error {
 	err := r.conn.QueryRow(
 		ctx,
-		"INSERT INTO account(name, cpf, secret, balance) values($1, $2, $3, $4) RETURNING account_id, created_at;",
-		account.Name, account.CPF, account.Secret, account.Balance,
-	).Scan(&account.ID, &account.CreatedAt)
+		"INSERT INTO account(name, cpf, secret, balance, created_at) values($1, $2, $3, $4, $5) RETURNING account_id;",
+		account.Name, account.CPF, account.Secret, account.Balance, account.CreatedAt,
+	).Scan(&account.ID)
 	if err != nil {
 		return err
 	}

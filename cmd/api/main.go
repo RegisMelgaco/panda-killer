@@ -4,6 +4,7 @@ import (
 	"errors"
 	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/usecase"
+	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
@@ -26,7 +27,7 @@ func main() {
 	accountRepo := repository.NewAccountRepo(conn)
 	transferRepo := repository.NewTransferRepo(conn)
 	router := rest.CreateRouter(
-		usecase.NewAccountUsecase(accountRepo),
+		usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
 	)
 

@@ -7,6 +7,7 @@ import (
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
+	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
@@ -22,7 +23,7 @@ func TestCreateTransfer(t *testing.T) {
 	accountRepo := repository.NewAccountRepo(pgxConn)
 	transferRepo := repository.NewTransferRepo(pgxConn)
 	router := rest.CreateRouter(
-		usecase.NewAccountUsecase(accountRepo),
+		usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
 	)
 	ts := httptest.NewServer(router)
@@ -30,13 +31,13 @@ func TestCreateTransfer(t *testing.T) {
 	client := requests.Client{Host: ts.URL}
 
 	t.Run("Create transfer with success should update users balances with success", func(t *testing.T) {
-		testAccount1 := account.Account{Balance: 1, Name: "Maria", CPF: "12345678901"}
+		testAccount1 := account.Account{Balance: 1, Name: "Maria", CPF: "12345678901", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Balance: 2, Name: "Joana", CPF: "12345678901"}
+		testAccount2 := account.Account{Balance: 2, Name: "Joana", CPF: "12345678901", Secret: "s"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)
@@ -74,13 +75,13 @@ func TestCreateTransfer(t *testing.T) {
 		originalOriginAccountBalance := 1
 		originalDestineAccountBalance := 0
 
-		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "12345678901"}
+		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "12345678901", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "12345678901"}
+		testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "12345678901", Secret: "s"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)
@@ -149,13 +150,13 @@ func TestCreateTransfer(t *testing.T) {
 		}
 	})
 	t.Run("Create transfer with value lesser than zero should fail", func(t *testing.T) {
-		testAccount1 := account.Account{Name: "Maria", CPF: "12345678901"}
+		testAccount1 := account.Account{Name: "Maria", CPF: "12345678901", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Name: "Joana", CPF: "12345678901"}
+		testAccount2 := account.Account{Name: "Joana", CPF: "12345678901", Secret: "s"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)
@@ -188,7 +189,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 	})
 	t.Run("Should not be possible to transfer to your self", func(t *testing.T) {
-		testAccount := account.Account{Name: "Maria", CPF: "12345678901"}
+		testAccount := account.Account{Name: "Maria", CPF: "12345678901", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)

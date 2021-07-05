@@ -6,6 +6,7 @@ import (
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
+	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
@@ -15,7 +16,6 @@ import (
 )
 
 func TestGetAccountBalance(t *testing.T) {
-	// caso de sucesso
 	t.Run("Get account balance with success should retrive it's balance", func(t *testing.T) {
 		postgres.RunMigrations()
 
@@ -23,7 +23,7 @@ func TestGetAccountBalance(t *testing.T) {
 		accountRepo := repository.NewAccountRepo(pgxConn)
 		transferRepo := repository.NewTransferRepo(pgxConn)
 		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
 			usecase.NewTransferUsecase(transferRepo, accountRepo),
 		)
 		ts := httptest.NewServer(router)
@@ -31,10 +31,11 @@ func TestGetAccountBalance(t *testing.T) {
 		client := requests.Client{Host: ts.URL}
 
 		expectedBalance := 42
-		testAccount := account.Account{Name: "João", CPF: "1235678901", Balance: expectedBalance}
+		testAccount := account.Account{Name: "João", CPF: "1235678901", Secret: "s", Balance: expectedBalance}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount)
 		if err != nil {
 			t.Errorf("Failed to create test account: %v", err)
+			t.FailNow()
 		}
 
 		resp, _ := client.GetAccountBalance(testAccount.ID)
@@ -61,7 +62,7 @@ func TestGetAccountBalance(t *testing.T) {
 		accountRepo := repository.NewAccountRepo(pgxConn)
 		transferRepo := repository.NewTransferRepo(pgxConn)
 		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
 			usecase.NewTransferUsecase(transferRepo, accountRepo),
 		)
 		ts := httptest.NewServer(router)

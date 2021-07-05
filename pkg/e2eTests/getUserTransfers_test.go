@@ -7,6 +7,7 @@ import (
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
+	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
@@ -24,7 +25,7 @@ func TestGetUserTransfers(t *testing.T) {
 	accountRepo := repository.NewAccountRepo(pgxConn)
 	transferRepo := repository.NewTransferRepo(pgxConn)
 	router := rest.CreateRouter(
-		usecase.NewAccountUsecase(accountRepo),
+		usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
 	)
 	ts := httptest.NewServer(router)
@@ -32,19 +33,19 @@ func TestGetUserTransfers(t *testing.T) {
 	client := requests.Client{Host: ts.URL}
 
 	t.Run("Get user transfers with success should return list of transfers where the user is part.", func(t *testing.T) {
-		testUser1 := account.Account{Name: "João", CPF: "1234578901", Balance: 1}
+		testUser1 := account.Account{Name: "João", CPF: "1234578901", Secret: "s", Balance: 1}
 		err := accountRepo.CreateAccount(ctx, &testUser1)
 		if err != nil {
 			t.Errorf("Failed to create test user: %v", err)
 			t.FailNow()
 		}
-		testUser2 := account.Account{Name: "Malaquias", CPF: "1234578901"}
+		testUser2 := account.Account{Name: "Malaquias", CPF: "1234578901", Secret: "s"}
 		err = accountRepo.CreateAccount(ctx, &testUser2)
 		if err != nil {
 			t.Errorf("Failed to create testUser2: %v", err)
 			t.FailNow()
 		}
-		testUser3 := account.Account{Name: "Jorge", CPF: "1234578901"}
+		testUser3 := account.Account{Name: "Jorge", CPF: "1234578901", Secret: "s"}
 		err = accountRepo.CreateAccount(ctx, &testUser3)
 		if err != nil {
 			t.Errorf("Failed to create testUser3: %v", err)

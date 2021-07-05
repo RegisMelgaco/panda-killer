@@ -6,32 +6,32 @@ import (
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
+	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateAccount(t *testing.T) {
 	t.Run("Creating account successfully should persist account", func(t *testing.T) {
 		postgres.RunMigrations()
 
-		testAccount := account.Account{
-			Balance: 2,
-			Name:    "Marcelinho",
-			CPF:     "12345678901",
-			Secret:  "s",
+		testAccount := rest.CreateAccountRequest{
+			Balance:  2,
+			Name:     "Marcelinho",
+			CPF:      "12345678901",
+			Password: "s",
 		}
 
 		pgxConn, _ := postgres.OpenConnection()
 		accountRepo := repository.NewAccountRepo(pgxConn)
 		transferRepo := repository.NewTransferRepo(pgxConn)
+		securityAlgo := algorithms.AccountSecurityAlgorithmsImpl{}
 		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewAccountUsecase(accountRepo, securityAlgo),
 			usecase.NewTransferUsecase(transferRepo, accountRepo),
 		)
 		ts := httptest.NewServer(router)
@@ -56,36 +56,35 @@ func TestCreateAccount(t *testing.T) {
 			t.Errorf("Id not set on response: %v", respAccount)
 		}
 
-		accounts, err := accountRepo.GetAccounts(context.Background())
+		persistedAccounts, err := accountRepo.GetAccounts(context.Background())
 		if err != nil {
 			t.Errorf("Failed to get stored accounts: %v", err)
 			t.FailNow()
 		}
 
-		if len(accounts) != 1 {
-			t.Errorf("Should exist one account")
+		if len(persistedAccounts) > 1 {
+			t.Errorf("Should exist at least one account")
 			t.FailNow()
 		}
 
-		account := accounts[0]
-		if account.ID != 1 {
-			t.Errorf("Account id should be set and not %v", account.ID)
-		}
+		persistedAccount := persistedAccounts[len(persistedAccounts)-1]
 
-		testAccount.ID = account.ID
-		testAccount.CreatedAt = account.CreatedAt
-		assert.ObjectsAreEqualValues(testAccount, account)
+		if testAccount.Balance != persistedAccount.Balance ||
+			testAccount.CPF != persistedAccount.CPF ||
+			testAccount.Name != persistedAccount.Name {
+			t.Errorf("Persisted data doesn't match with request data: request = %v, persisted = %v", persistedAccount, testAccount)
+		}
 	})
 	t.Run("Creating account with invalid account shouldn't persist account", func(t *testing.T) {
 		postgres.RunMigrations()
 
-		testAccount := account.Account{}
+		testAccount := rest.CreateAccountRequest{}
 
 		pgxConn, _ := postgres.OpenConnection()
 		accountRepo := repository.NewAccountRepo(pgxConn)
 		transferRepo := repository.NewTransferRepo(pgxConn)
 		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
 			usecase.NewTransferUsecase(transferRepo, accountRepo),
 		)
 		ts := httptest.NewServer(router)

@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
 )
 
-func (c *Client) CreateAccount(a account.Account) (*http.Response, error) {
+func (c *Client) CreateAccount(a rest.CreateAccountRequest) (*http.Response, error) {
 	account, _ := json.Marshal(a)
 	return http.Post(c.Host+"/accounts/", "application/json", bytes.NewBuffer(account))
 }

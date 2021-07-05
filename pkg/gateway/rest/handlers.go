@@ -14,8 +14,8 @@ import (
 
 func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var newAccount account.Account
-		err := json.NewDecoder(r.Body).Decode(&newAccount)
+		var requestBody CreateAccountRequest
+		err := json.NewDecoder(r.Body).Decode(&requestBody)
 
 		if err != nil {
 			log.Debugf("Failed to parse request body: %v", err)
@@ -23,7 +23,7 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 			return
 		}
 
-		err = usecase.CreateAccount(r.Context(), &newAccount)
+		createdAccount, err := usecase.CreateAccount(r.Context(), requestBody.Balance, requestBody.Name, requestBody.CPF, requestBody.Password)
 		if err == account.ErrAccountCPFShouldHaveLength11 || err == account.ErrAccountNameIsObligatory {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(ErrorResponse{Message: err.Error()})
@@ -36,7 +36,7 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(CreatedAccountResponse{newAccount.ID})
+		json.NewEncoder(w).Encode(CreatedAccountResponse{createdAccount.ID})
 	}
 }
 

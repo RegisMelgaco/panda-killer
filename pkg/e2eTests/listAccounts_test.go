@@ -6,6 +6,7 @@ import (
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
+	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
@@ -24,14 +25,14 @@ func TestListAccounts(t *testing.T) {
 		accountRepo := repository.NewAccountRepo(pgxConn)
 		transferRepo := repository.NewTransferRepo(pgxConn)
 		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo),
+			usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
 			usecase.NewTransferUsecase(transferRepo, accountRepo),
 		)
 		ts := httptest.NewServer(router)
 		defer ts.Close()
 		client := requests.Client{Host: ts.URL}
 
-		testAccounts := []account.Account{{Name: "João", CPF: "12345678901"}, {Name: "Maria", CPF: "12345678901"}}
+		testAccounts := []account.Account{{Name: "João", CPF: "12345678901", Secret: "s"}, {Name: "Maria", CPF: "12345678901", Secret: "s"}}
 		for _, a := range testAccounts {
 			accountRepo.CreateAccount(context.Background(), &a)
 		}
