@@ -74,6 +74,10 @@ func TestCreateAccount(t *testing.T) {
 			testAccount.Name != persistedAccount.Name {
 			t.Errorf("Persisted data doesn't match with request data: request = %v, persisted = %v", persistedAccount, testAccount)
 		}
+
+		if err = securityAlgo.CheckSecretAndPassword(persistedAccount.Secret, testAccount.Password); err != nil {
+			t.Errorf("Persisted secret from account should match to it's password.")
+		}
 	})
 	t.Run("Creating account with invalid account shouldn't persist account", func(t *testing.T) {
 		postgres.RunMigrations()

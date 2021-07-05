@@ -12,3 +12,7 @@ func (a AccountSecurityAlgorithmsImpl) GenerateSecretFromPassword(password strin
 
 	return string(hash), nil
 }
+
+func (a AccountSecurityAlgorithmsImpl) CheckSecretAndPassword(secret, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(secret), []byte(password))
+}
