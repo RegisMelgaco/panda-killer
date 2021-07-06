@@ -34,6 +34,7 @@ func (r TransferRepoImpl) CreateTransferAndUpdateAccountsBalances(ctx context.Co
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	err = tx.QueryRow(
 		ctx,
@@ -44,18 +45,15 @@ func (r TransferRepoImpl) CreateTransferAndUpdateAccountsBalances(ctx context.Co
 		newTransfer.CreatedAt,
 	).Scan(&newTransfer.ID)
 	if err != nil {
-		tx.Rollback(ctx)
 		return err
 	}
 
 	_, err = tx.Exec(ctx, updateAccountBalanceSql, newTransfer.OriginAccount.Balance, newTransfer.OriginAccount.ID)
 	if err != nil {
-		tx.Rollback(ctx)
 		return err
 	}
 	_, err = tx.Exec(ctx, updateAccountBalanceSql, newTransfer.DestinationAccount.Balance, newTransfer.DestinationAccount.ID)
 	if err != nil {
-		tx.Rollback(ctx)
 		return err
 	}
 
