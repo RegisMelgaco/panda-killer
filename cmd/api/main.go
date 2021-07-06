@@ -26,9 +26,12 @@ func main() {
 
 	accountRepo := repository.NewAccountRepo(conn)
 	transferRepo := repository.NewTransferRepo(conn)
+	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
+	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
 	router := rest.CreateRouter(
-		usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
+		usecase.NewAccountUsecase(accountRepo, passAlgo),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
+		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
 	)
 
 	port, err := config.GetRestApiPort()

@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *usecase.TransferUsecase) http.Handler {
+func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *usecase.TransferUsecase, authUsecase *usecase.AuthUsecase) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -32,5 +32,8 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *useca
 		r.Get("/{accountID}", ListTransfers(transferUsecase))
 	})
 
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/login", Login(authUsecase))
+	})
 	return r
 }

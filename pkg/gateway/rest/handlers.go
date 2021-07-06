@@ -145,3 +145,23 @@ func ListTransfers(u *usecase.TransferUsecase) http.HandlerFunc {
 		json.NewEncoder(rw).Encode(response)
 	}
 }
+
+func Login(authUsecase *usecase.AuthUsecase) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		var credentials LoginRequest
+		err := json.NewDecoder(r.Body).Decode(&credentials)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		session, err := authUsecase.Login(r.Context(), credentials.CPF, credentials.Password)
+		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		rw.Header().Add("Authorization", session)
+		rw.WriteHeader(http.StatusOK)
+	}
+}

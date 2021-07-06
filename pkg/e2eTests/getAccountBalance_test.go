@@ -16,20 +16,23 @@ import (
 )
 
 func TestGetAccountBalance(t *testing.T) {
+	postgres.RunMigrations()
+
+	pgxConn, _ := postgres.OpenConnection()
+	accountRepo := repository.NewAccountRepo(pgxConn)
+	transferRepo := repository.NewTransferRepo(pgxConn)
+	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
+	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	router := rest.CreateRouter(
+		usecase.NewAccountUsecase(accountRepo, passAlgo),
+		usecase.NewTransferUsecase(transferRepo, accountRepo),
+		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
+	)
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	client := requests.Client{Host: ts.URL}
+
 	t.Run("Get account balance with success should retrive it's balance", func(t *testing.T) {
-		postgres.RunMigrations()
-
-		pgxConn, _ := postgres.OpenConnection()
-		accountRepo := repository.NewAccountRepo(pgxConn)
-		transferRepo := repository.NewTransferRepo(pgxConn)
-		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
-			usecase.NewTransferUsecase(transferRepo, accountRepo),
-		)
-		ts := httptest.NewServer(router)
-		defer ts.Close()
-		client := requests.Client{Host: ts.URL}
-
 		expectedBalance := 42
 		testAccount := account.Account{Name: "João", CPF: "1235678901", Secret: "s", Balance: expectedBalance}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount)
@@ -56,19 +59,6 @@ func TestGetAccountBalance(t *testing.T) {
 		}
 	})
 	t.Run("Get account balance from nonexisting account should retrieve a 404", func(t *testing.T) {
-		postgres.RunMigrations()
-
-		pgxConn, _ := postgres.OpenConnection()
-		accountRepo := repository.NewAccountRepo(pgxConn)
-		transferRepo := repository.NewTransferRepo(pgxConn)
-		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
-			usecase.NewTransferUsecase(transferRepo, accountRepo),
-		)
-		ts := httptest.NewServer(router)
-		defer ts.Close()
-		client := requests.Client{Host: ts.URL}
-
 		resp, _ := client.GetAccountBalance(424242)
 
 		if resp.StatusCode != http.StatusNotFound {

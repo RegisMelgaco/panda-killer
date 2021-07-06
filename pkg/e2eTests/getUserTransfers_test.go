@@ -24,9 +24,12 @@ func TestGetUserTransfers(t *testing.T) {
 	pgxConn, _ := postgres.OpenConnection()
 	accountRepo := repository.NewAccountRepo(pgxConn)
 	transferRepo := repository.NewTransferRepo(pgxConn)
+	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
+	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
 	router := rest.CreateRouter(
-		usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
+		usecase.NewAccountUsecase(accountRepo, passAlgo),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
+		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
 	)
 	ts := httptest.NewServer(router)
 	defer ts.Close()

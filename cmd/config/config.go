@@ -14,6 +14,9 @@ const (
 
 	restApiPortEnvKey           = "REST_API_PORT"
 	restApiPortEnvNotSetMessage = "rest api port environment variable (" + restApiPortEnvKey + ") is not set"
+
+	accessSecretEnvKey           = "ACCESS_SECRET"
+	accessSecretEnvNotSetMessage = "access secret environment variable (" + accessSecretEnvKey + ") is not set"
 )
 
 func getEnvVariable(variableKey, errorMessage string) (string, error) {
@@ -34,4 +37,8 @@ func GetMigrationsFolderUrl() (string, error) {
 
 func GetRestApiPort() (string, error) {
 	return getEnvVariable(restApiPortEnvKey, restApiPortEnvNotSetMessage)
+}
+
+func GetAccessSecret() (string, error) {
+	return getEnvVariable(accessSecretEnvKey, accessSecretEnvNotSetMessage)
 }

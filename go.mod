@@ -3,6 +3,7 @@ module local/panda-killer
 go 1.16
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.3
 	github.com/golang-migrate/migrate/v4 v4.14.1

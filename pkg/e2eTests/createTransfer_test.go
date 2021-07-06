@@ -22,22 +22,25 @@ func TestCreateTransfer(t *testing.T) {
 	pgxConn, _ := postgres.OpenConnection()
 	accountRepo := repository.NewAccountRepo(pgxConn)
 	transferRepo := repository.NewTransferRepo(pgxConn)
+	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
+	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
 	router := rest.CreateRouter(
-		usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
+		usecase.NewAccountUsecase(accountRepo, passAlgo),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
+		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
 	)
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 	client := requests.Client{Host: ts.URL}
 
 	t.Run("Create transfer with success should update users balances with success", func(t *testing.T) {
-		testAccount1 := account.Account{Balance: 1, Name: "Maria", CPF: "12345678901", Secret: "s"}
+		testAccount1 := account.Account{Balance: 1, Name: "Maria", CPF: "12345678902", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Balance: 2, Name: "Joana", CPF: "12345678901", Secret: "s"}
+		testAccount2 := account.Account{Balance: 2, Name: "Joana", CPF: "12345678903", Secret: "s"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)
@@ -75,13 +78,13 @@ func TestCreateTransfer(t *testing.T) {
 		originalOriginAccountBalance := 1
 		originalDestineAccountBalance := 0
 
-		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "12345678901", Secret: "s"}
+		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "12345678904", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "12345678901", Secret: "s"}
+		testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "12345678905", Secret: "s"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)

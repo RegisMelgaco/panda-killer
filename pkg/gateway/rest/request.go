@@ -11,3 +11,8 @@ type CreateTransferRequest struct {
 	OriginAccountID, DestinationAccountID int
 	Amount                                int
 }
+
+type LoginRequest struct {
+	CPF      string `json:"cpf"`
+	Password string `json:"password"`
+}

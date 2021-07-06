@@ -3,16 +3,17 @@ package usecase
 import (
 	"context"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/auth"
 
 	"github.com/sirupsen/logrus"
 )
 
 type AccountUsecase struct {
 	repo         account.AccountRepo
-	securityAlgo account.AccountSecurityAlgorithms
+	securityAlgo auth.PasswordHashingAlgorithms
 }
 
-func NewAccountUsecase(accountRepo account.AccountRepo, securityAlgo account.AccountSecurityAlgorithms) *AccountUsecase {
+func NewAccountUsecase(accountRepo account.AccountRepo, securityAlgo auth.PasswordHashingAlgorithms) *AccountUsecase {
 	return &AccountUsecase{
 		repo:         accountRepo,
 		securityAlgo: securityAlgo,

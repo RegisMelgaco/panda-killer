@@ -2,9 +2,9 @@ package algorithms
 
 import "golang.org/x/crypto/bcrypt"
 
-type AccountSecurityAlgorithmsImpl struct{}
+type PasswordHashingAlgorithmsImpl struct{}
 
-func (a AccountSecurityAlgorithmsImpl) GenerateSecretFromPassword(password string) (string, error) {
+func (a PasswordHashingAlgorithmsImpl) GenerateSecretFromPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", nil
@@ -13,6 +13,6 @@ func (a AccountSecurityAlgorithmsImpl) GenerateSecretFromPassword(password strin
 	return string(hash), nil
 }
 
-func (a AccountSecurityAlgorithmsImpl) CheckSecretAndPassword(secret, password string) error {
+func (a PasswordHashingAlgorithmsImpl) CheckSecretAndPassword(secret, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(secret), []byte(password))
 }

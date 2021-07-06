@@ -36,6 +36,7 @@ func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, de
 
 func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, originAccountID, destinationAccountID, amount int, f createTransferFunc) (*transfer.Transfer, error) {
 	u.mux.Lock()
+	defer u.mux.Unlock()
 
 	// Prevents a dead lock with it self where is called Do two times on same key by same goroutine.
 	if originAccountID == destinationAccountID {
@@ -46,7 +47,6 @@ func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, or
 		defer u.group.Forget(fmt.Sprint(originAccountID))
 		t, err, _ := u.group.Do(fmt.Sprint(destinationAccountID), func() (interface{}, error) {
 			defer u.group.Forget(fmt.Sprint(destinationAccountID))
-			defer u.mux.Unlock()
 
 			return f(ctx, originAccountID, destinationAccountID, amount)
 		})

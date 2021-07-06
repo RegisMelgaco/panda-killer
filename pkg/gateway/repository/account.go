@@ -15,6 +15,15 @@ func NewAccountRepo(conn *pgx.Conn) account.AccountRepo {
 	return AccountRepoImpl{conn}
 }
 
+const (
+	selectAccountByCPF = `
+		SELECT account_id, name, cpf, secret, balance, created_at
+			FROM account
+			WHERE cpf = $1
+			FETCH FIRST ROW ONLY;
+	`
+)
+
 func (r AccountRepoImpl) CreateAccount(ctx context.Context, account *account.Account) error {
 	err := r.conn.QueryRow(
 		ctx,
@@ -58,5 +67,17 @@ func (r AccountRepoImpl) GetAccount(ctx context.Context, accountID int) (*accoun
 		return &account.Account{}, nil
 	}
 
-	return &a, err
+	return &a, nil
+}
+
+func (r AccountRepoImpl) GetAccountByCPF(ctx context.Context, cpf string) (*account.Account, error) {
+	row := r.conn.QueryRow(ctx, selectAccountByCPF, cpf)
+
+	var a account.Account
+	err := row.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
+	if err == pgx.ErrNoRows {
+		return &account.Account{}, nil
+	}
+
+	return &a, nil
 }
