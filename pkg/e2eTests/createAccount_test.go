@@ -36,7 +36,7 @@ func TestCreateAccount(t *testing.T) {
 		testAccount := rest.CreateAccountRequest{
 			Balance:  2,
 			Name:     "Marcelinho",
-			CPF:      "12345678901",
+			CPF:      "74763452827",
 			Password: "s",
 		}
 

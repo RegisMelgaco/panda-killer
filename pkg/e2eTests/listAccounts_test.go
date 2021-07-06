@@ -35,7 +35,7 @@ func TestListAccounts(t *testing.T) {
 		defer ts.Close()
 		client := requests.Client{Host: ts.URL}
 
-		testAccounts := []account.Account{{Name: "João", CPF: "12345678901", Secret: "s"}, {Name: "Maria", CPF: "12345678901", Secret: "s"}}
+		testAccounts := []account.Account{{Name: "João", CPF: "60684316730", Secret: "s"}, {Name: "Maria", CPF: "47577807613", Secret: "s"}}
 		for _, a := range testAccounts {
 			accountRepo.CreateAccount(context.Background(), &a)
 		}

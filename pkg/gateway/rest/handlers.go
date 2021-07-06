@@ -120,13 +120,12 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 
 func ListTransfers(u *usecase.TransferUsecase) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		accountIDStr := chi.URLParam(r, "accountID")
-		accountID, _ := strconv.Atoi(accountIDStr)
+		session := r.Context().Value(auth.SessionContextKey).(auth.Claims)
 
-		transfers, err := u.ListTransfers(r.Context(), accountID)
+		transfers, err := u.ListTransfers(r.Context(), session.AccountID)
 		if err != nil {
-			// TODO Implement proper error handling
-			panic(err)
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		rw.WriteHeader(http.StatusOK)

@@ -32,7 +32,7 @@ func TestLogin(t *testing.T) {
 	defer ts.Close()
 	client := requests.Client{Host: ts.URL}
 
-	correctCPF := "12345678901"
+	correctCPF := "53744698351"
 	correctPassword := "pass"
 
 	_, err := accountUsecase.CreateAccount(ctx, 0, "Joana", correctCPF, correctPassword)

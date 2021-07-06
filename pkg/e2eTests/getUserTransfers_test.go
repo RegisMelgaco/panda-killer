@@ -37,7 +37,7 @@ func TestGetUserTransfers(t *testing.T) {
 
 	t.Run("Get user transfers with success should return list of transfers where the user is part.", func(t *testing.T) {
 		passord := ";)"
-		testUser1, err := accountUsecase.CreateAccount(ctx, 1, "João", "85385023495", passord)
+		testUser1, err := accountUsecase.CreateAccount(ctx, 1, "João", "33228058166", passord)
 		if err != nil {
 			t.Errorf("Failed to create test user: %v", err)
 			t.FailNow()

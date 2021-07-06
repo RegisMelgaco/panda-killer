@@ -24,6 +24,7 @@ func TestCreateTransfer(t *testing.T) {
 	transferRepo := repository.NewTransferRepo(pgxConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	router := rest.CreateRouter(
 		usecase.NewAccountUsecase(accountRepo, passAlgo),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
@@ -33,14 +34,32 @@ func TestCreateTransfer(t *testing.T) {
 	defer ts.Close()
 	client := requests.Client{Host: ts.URL}
 
+	passord := ";)"
+	testUser1, err := accountUsecase.CreateAccount(context.Background(), 1, "João", "85385023495", passord)
+	if err != nil {
+		t.Errorf("Failed to create test user: %v", err)
+		t.FailNow()
+	}
+
+	resp, err := client.Login(rest.LoginRequest{
+		CPF:      testUser1.CPF,
+		Password: passord,
+	})
+	if err != nil {
+		t.Errorf("Failed to request login: %v", err)
+		t.FailNow()
+	}
+
+	authorizationToken := resp.Header.Get("Authorization")
+
 	t.Run("Create transfer with success should update users balances with success", func(t *testing.T) {
-		testAccount1 := account.Account{Balance: 1, Name: "Maria", CPF: "12345678902", Secret: "s"}
+		testAccount1 := account.Account{Balance: 1, Name: "Maria", CPF: "36063067680", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Balance: 2, Name: "Joana", CPF: "12345678903", Secret: "s"}
+		testAccount2 := account.Account{Balance: 2, Name: "Joana", CPF: "46834635203", Secret: "s"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)
@@ -48,7 +67,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 
 		transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: 1}
-		resp, _ := client.CreateTransfer(transferRequest)
+		resp, _ := client.CreateTransfer(authorizationToken, transferRequest)
 
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("Transfer creation request response should be OK not %v", resp.Status)
@@ -78,13 +97,13 @@ func TestCreateTransfer(t *testing.T) {
 		originalOriginAccountBalance := 1
 		originalDestineAccountBalance := 0
 
-		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "12345678904", Secret: "s"}
+		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "06316417772", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "12345678905", Secret: "s"}
+		testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "70465273858", Secret: "s"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)
@@ -92,7 +111,7 @@ func TestCreateTransfer(t *testing.T) {
 		}
 
 		transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: originalOriginAccountBalance + 1}
-		resp, _ := client.CreateTransfer(transferRequest)
+		resp, _ := client.CreateTransfer(authorizationToken, transferRequest)
 
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Errorf("Transfer creation request response should be BAD REQUEST not %v", resp.Status)
@@ -131,7 +150,7 @@ func TestCreateTransfer(t *testing.T) {
 	})
 	t.Run("Create transfer with non existing account(s) should fail", func(t *testing.T) {
 		transferRequest := rest.CreateTransferRequest{OriginAccountID: 132, DestinationAccountID: 13212, Amount: 1}
-		resp, _ := client.CreateTransfer(transferRequest)
+		resp, _ := client.CreateTransfer(authorizationToken, transferRequest)
 
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Errorf("Transfer creation request response should be BAD REQUEST not %v", resp.Status)
@@ -153,20 +172,20 @@ func TestCreateTransfer(t *testing.T) {
 		}
 	})
 	t.Run("Create transfer with value lesser than zero should fail", func(t *testing.T) {
-		testAccount1 := account.Account{Name: "Maria", CPF: "12345678901", Secret: "s"}
+		testAccount1 := account.Account{Name: "Maria", CPF: "34414381401", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		testAccount2 := account.Account{Name: "Joana", CPF: "12345678901", Secret: "s"}
+		testAccount2 := account.Account{Name: "Joana", CPF: "42462747478", Secret: "s"}
 		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
 		if err != nil {
 			t.Errorf("Failed to create test account2: %v", err)
 			t.FailNow()
 		}
 
-		resp, err := client.CreateTransfer(rest.CreateTransferRequest{
+		resp, err := client.CreateTransfer(authorizationToken, rest.CreateTransferRequest{
 			OriginAccountID:      testAccount1.ID,
 			DestinationAccountID: testAccount2.ID,
 			Amount:               0,
@@ -192,13 +211,13 @@ func TestCreateTransfer(t *testing.T) {
 		}
 	})
 	t.Run("Should not be possible to transfer to your self", func(t *testing.T) {
-		testAccount := account.Account{Name: "Maria", CPF: "12345678901", Secret: "s"}
+		testAccount := account.Account{Name: "Maria", CPF: "06268075730", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount)
 		if err != nil {
 			t.Errorf("Failed to create test account1: %v", err)
 		}
 
-		resp, err := client.CreateTransfer(rest.CreateTransferRequest{
+		resp, err := client.CreateTransfer(authorizationToken, rest.CreateTransferRequest{
 			OriginAccountID:      testAccount.ID,
 			DestinationAccountID: testAccount.ID,
 			Amount:               42,

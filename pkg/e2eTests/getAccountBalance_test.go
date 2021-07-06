@@ -34,7 +34,7 @@ func TestGetAccountBalance(t *testing.T) {
 
 	t.Run("Get account balance with success should retrive it's balance", func(t *testing.T) {
 		expectedBalance := 42
-		testAccount := account.Account{Name: "João", CPF: "1235678901", Secret: "s", Balance: expectedBalance}
+		testAccount := account.Account{Name: "João", CPF: "34222086827", Secret: "s", Balance: expectedBalance}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount)
 		if err != nil {
 			t.Errorf("Failed to create test account: %v", err)

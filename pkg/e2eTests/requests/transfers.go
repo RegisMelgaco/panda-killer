@@ -7,9 +7,15 @@ import (
 	"net/http"
 )
 
-func (c *Client) CreateTransfer(transfer rest.CreateTransferRequest) (resp *http.Response, err error) {
+func (c *Client) CreateTransfer(authorization string, transfer rest.CreateTransferRequest) (resp *http.Response, err error) {
 	body, _ := json.Marshal(transfer)
-	return http.Post(c.Host+"/transfers", "application/json", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", c.Host+"/transfers/", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", authorization)
+	req.Header.Add("Content-Type", "application/json")
+	return (&http.Client{}).Do(req)
 }
 
 func (c *Client) ListTransfers(authorization string) (*http.Response, error) {
