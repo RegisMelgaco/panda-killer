@@ -32,16 +32,16 @@ func TestLogin(t *testing.T) {
 	defer ts.Close()
 	client := requests.Client{Host: ts.URL}
 
+	correctCPF := "12345678901"
+	correctPassword := "pass"
+
+	_, err := accountUsecase.CreateAccount(ctx, 0, "Joana", correctCPF, correctPassword)
+	if err != nil {
+		t.Errorf("Failed to create a test account: %v", err)
+		t.FailNow()
+	}
+
 	t.Run("Login with success should receive response with session on headers", func(t *testing.T) {
-		correctCPF := "12345678901"
-		correctPassword := "pass"
-
-		_, err := accountUsecase.CreateAccount(ctx, 0, "Joana", correctCPF, correctPassword)
-		if err != nil {
-			t.Errorf("Failed to create a test account: %v", err)
-			t.FailNow()
-		}
-
 		resp, err := client.Login(rest.LoginRequest{
 			CPF:      correctCPF,
 			Password: correctPassword,
@@ -59,6 +59,21 @@ func TestLogin(t *testing.T) {
 		}
 	})
 	t.Run("Login without success should receive unauthorized", func(t *testing.T) {
-		// t.Skip()
+		incorrectPassword := correctPassword + "123"
+		resp, err := client.Login(rest.LoginRequest{
+			CPF:      correctCPF,
+			Password: incorrectPassword,
+		})
+		if err != nil {
+			t.Errorf("Failed to request login: %v", err)
+			t.FailNow()
+		}
+
+		if resp.StatusCode != http.StatusUnauthorized {
+			t.Errorf("Didn't received expected status (Unauthorized): %v", resp.Status)
+		}
+		if len(resp.Header.Get("Authorization")) != 0 {
+			t.Error("Authorization header should be set.")
+		}
 	})
 }

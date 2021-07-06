@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/auth"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"net/http"
@@ -156,6 +157,10 @@ func Login(authUsecase *usecase.AuthUsecase) http.HandlerFunc {
 		}
 
 		session, err := authUsecase.Login(r.Context(), credentials.CPF, credentials.Password)
+		if err == auth.ErrInvalidCredentials {
+			rw.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		if err != nil {
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
