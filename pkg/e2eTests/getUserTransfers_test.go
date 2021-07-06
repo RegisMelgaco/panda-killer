@@ -3,7 +3,6 @@ package e2etest
 import (
 	"context"
 	"encoding/json"
-	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
@@ -26,8 +25,9 @@ func TestGetUserTransfers(t *testing.T) {
 	transferRepo := repository.NewTransferRepo(pgxConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	router := rest.CreateRouter(
-		usecase.NewAccountUsecase(accountRepo, passAlgo),
+		accountUsecase,
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
 		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
 	)
@@ -36,26 +36,24 @@ func TestGetUserTransfers(t *testing.T) {
 	client := requests.Client{Host: ts.URL}
 
 	t.Run("Get user transfers with success should return list of transfers where the user is part.", func(t *testing.T) {
-		testUser1 := account.Account{Name: "João", CPF: "1234578901", Secret: "s", Balance: 1}
-		err := accountRepo.CreateAccount(ctx, &testUser1)
+		passord := ";)"
+		testUser1, err := accountUsecase.CreateAccount(ctx, 1, "João", "85385023495", passord)
 		if err != nil {
 			t.Errorf("Failed to create test user: %v", err)
 			t.FailNow()
 		}
-		testUser2 := account.Account{Name: "Malaquias", CPF: "1234578901", Secret: "s"}
-		err = accountRepo.CreateAccount(ctx, &testUser2)
+		testUser2, err := accountUsecase.CreateAccount(ctx, 0, "Malaquias", "94785942214", ";)")
 		if err != nil {
-			t.Errorf("Failed to create testUser2: %v", err)
+			t.Errorf("Failed to create test user: %v", err)
 			t.FailNow()
 		}
-		testUser3 := account.Account{Name: "Jorge", CPF: "1234578901", Secret: "s"}
-		err = accountRepo.CreateAccount(ctx, &testUser3)
+		testUser3, err := accountUsecase.CreateAccount(ctx, 0, "Jorge", "03729912343", ";)")
 		if err != nil {
-			t.Errorf("Failed to create testUser3: %v", err)
+			t.Errorf("Failed to create test user: %v", err)
 			t.FailNow()
 		}
 
-		transfer1, err := transfer.NewTransfer(&testUser1, &testUser2, 1)
+		transfer1, err := transfer.NewTransfer(testUser1, testUser2, 1)
 		if err != nil {
 			t.Errorf("Failed to create transfer1: %v", err)
 			t.FailNow()
@@ -69,7 +67,7 @@ func TestGetUserTransfers(t *testing.T) {
 			t.FailNow()
 		}
 
-		transfer2, err := transfer.NewTransfer(&testUser2, &testUser3, 1)
+		transfer2, err := transfer.NewTransfer(testUser2, testUser3, 1)
 		if err != nil {
 			t.Errorf("Failed to create transfer1: %v", err)
 			t.FailNow()
@@ -83,7 +81,7 @@ func TestGetUserTransfers(t *testing.T) {
 			t.FailNow()
 		}
 
-		transfer3, err := transfer.NewTransfer(&testUser3, &testUser1, 1)
+		transfer3, err := transfer.NewTransfer(testUser3, testUser1, 1)
 		if err != nil {
 			t.Errorf("Failed to create transfer3: %v", err)
 			t.FailNow()
@@ -97,7 +95,18 @@ func TestGetUserTransfers(t *testing.T) {
 			t.FailNow()
 		}
 
-		resp, err := client.ListTransfers(testUser1.ID)
+		resp, err := client.Login(rest.LoginRequest{
+			CPF:      testUser1.CPF,
+			Password: passord,
+		})
+		if err != nil {
+			t.Errorf("Failed to request login: %v", err)
+			t.FailNow()
+		}
+
+		authorizationToken := resp.Header.Get("Authorization")
+
+		resp, err = client.ListTransfers(authorizationToken)
 		if err != nil {
 			t.Errorf("Failed to request transfers list: %v", err)
 			t.FailNow()

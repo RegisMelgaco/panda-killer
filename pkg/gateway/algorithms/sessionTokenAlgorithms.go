@@ -3,7 +3,7 @@ package algorithms
 import (
 	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
-	"time"
+	"local/panda-killer/pkg/domain/entity/auth"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -16,11 +16,9 @@ func (a SessionTokenAlgorithmsImpl) GenerateSessionToken(sessionAccount *account
 		return "", err
 	}
 
-	claims := jwt.MapClaims{
-		"authorized": true,
-		"account_id": sessionAccount.ID,
-		"exp":        time.Now().Add(time.Minute * 15).Unix(),
-	}
+	claims := ToMapClaims(
+		auth.NewClaims(sessionAccount.ID),
+	)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	signedTokenString, err := token.SignedString([]byte(accessSecret))
@@ -29,4 +27,12 @@ func (a SessionTokenAlgorithmsImpl) GenerateSessionToken(sessionAccount *account
 	}
 
 	return signedTokenString, nil
+}
+
+func ToMapClaims(c auth.Claims) jwt.Claims {
+	return jwt.MapClaims{
+		"authorized": c.Authorized,
+		"account_id": c.AccountID,
+		"exp":        c.Expiration.Unix(),
+	}
 }
