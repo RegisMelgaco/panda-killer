@@ -16,27 +16,29 @@ import (
 )
 
 func TestCreateAccount(t *testing.T) {
-	t.Run("Creating account successfully should persist account", func(t *testing.T) {
-		postgres.RunMigrations()
+	postgres.RunMigrations()
 
+	pgxConn, _ := postgres.OpenConnection()
+	accountRepo := repository.NewAccountRepo(pgxConn)
+	transferRepo := repository.NewTransferRepo(pgxConn)
+	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
+	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	router := rest.CreateRouter(
+		usecase.NewAccountUsecase(accountRepo, passAlgo),
+		usecase.NewTransferUsecase(transferRepo, accountRepo),
+		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
+	)
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	client := requests.Client{Host: ts.URL}
+
+	t.Run("Creating account successfully should persist account", func(t *testing.T) {
 		testAccount := rest.CreateAccountRequest{
 			Balance:  2,
 			Name:     "Marcelinho",
 			CPF:      "12345678901",
 			Password: "s",
 		}
-
-		pgxConn, _ := postgres.OpenConnection()
-		accountRepo := repository.NewAccountRepo(pgxConn)
-		transferRepo := repository.NewTransferRepo(pgxConn)
-		securityAlgo := algorithms.AccountSecurityAlgorithmsImpl{}
-		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo, securityAlgo),
-			usecase.NewTransferUsecase(transferRepo, accountRepo),
-		)
-		ts := httptest.NewServer(router)
-		defer ts.Close()
-		client := requests.Client{Host: ts.URL}
 
 		resp, _ := client.CreateAccount(testAccount)
 
@@ -62,7 +64,7 @@ func TestCreateAccount(t *testing.T) {
 			t.FailNow()
 		}
 
-		if len(persistedAccounts) > 1 {
+		if len(persistedAccounts) == 0 {
 			t.Errorf("Should exist at least one account")
 			t.FailNow()
 		}
@@ -75,25 +77,12 @@ func TestCreateAccount(t *testing.T) {
 			t.Errorf("Persisted data doesn't match with request data: request = %v, persisted = %v", persistedAccount, testAccount)
 		}
 
-		if err = securityAlgo.CheckSecretAndPassword(persistedAccount.Secret, testAccount.Password); err != nil {
+		if err = passAlgo.CheckSecretAndPassword(persistedAccount.Secret, testAccount.Password); err != nil {
 			t.Errorf("Persisted secret from account should match to it's password.")
 		}
 	})
 	t.Run("Creating account with invalid account shouldn't persist account", func(t *testing.T) {
-		postgres.RunMigrations()
-
 		testAccount := rest.CreateAccountRequest{}
-
-		pgxConn, _ := postgres.OpenConnection()
-		accountRepo := repository.NewAccountRepo(pgxConn)
-		transferRepo := repository.NewTransferRepo(pgxConn)
-		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo, algorithms.AccountSecurityAlgorithmsImpl{}),
-			usecase.NewTransferUsecase(transferRepo, accountRepo),
-		)
-		ts := httptest.NewServer(router)
-		defer ts.Close()
-		client := requests.Client{Host: ts.URL}
 
 		resp, _ := client.CreateAccount(testAccount)
 
