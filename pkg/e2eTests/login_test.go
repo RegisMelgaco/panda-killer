@@ -58,11 +58,29 @@ func TestLogin(t *testing.T) {
 			t.Error("Authorization header should be set.")
 		}
 	})
-	t.Run("Login without success should receive unauthorized", func(t *testing.T) {
+	t.Run("Login with incorrect password should receive unauthorized", func(t *testing.T) {
 		incorrectPassword := correctPassword + "123"
 		resp, err := client.Login(rest.LoginRequest{
 			CPF:      correctCPF,
 			Password: incorrectPassword,
+		})
+		if err != nil {
+			t.Errorf("Failed to request login: %v", err)
+			t.FailNow()
+		}
+
+		if resp.StatusCode != http.StatusUnauthorized {
+			t.Errorf("Didn't received expected status (Unauthorized): %v", resp.Status)
+		}
+		if len(resp.Header.Get("Authorization")) != 0 {
+			t.Error("Authorization header should be set.")
+		}
+	})
+	t.Run("Login with incorrect cpf should receive unauthorized", func(t *testing.T) {
+		incorrectCPF := correctCPF + "123"
+		resp, err := client.Login(rest.LoginRequest{
+			CPF:      incorrectCPF,
+			Password: correctPassword,
 		})
 		if err != nil {
 			t.Errorf("Failed to request login: %v", err)
