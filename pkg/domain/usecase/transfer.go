@@ -7,14 +7,14 @@ import (
 	"sync"
 
 	"github.com/sirupsen/logrus"
-	"golang.org/x/sync/singleflight"
 )
 
 type TransferUsecase struct {
 	transferRepo transfer.TransferRepo
 	accountRepo  account.AccountRepo
-	group        *singleflight.Group
-	mux          *sync.Mutex
+
+	mux            *sync.Mutex
+	accountMutexes map[int]*sync.Mutex
 }
 
 func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.AccountRepo) *TransferUsecase {
@@ -22,22 +22,46 @@ func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.
 		transferRepo: transferRepo,
 		accountRepo:  accountRepo,
 
-		group: &singleflight.Group{},
-		mux:   &sync.Mutex{},
+		mux:            &sync.Mutex{},
+		accountMutexes: make(map[int]*sync.Mutex),
 	}
 }
 
-type createTransferFunc func(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error)
-
 func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
-	return u.handleCreateTransferParallelism(ctx, originAccountID, destinationAccountID, amount, u.handleCreateTransferBussLogic)
+	return u.handleCreateTransferParallelism(ctx, originAccountID, destinationAccountID, amount)
 }
 
-func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, originAccountID, destinationAccountID, amount int, f createTransferFunc) (*transfer.Transfer, error) {
-	u.mux.Lock()
-	defer u.mux.Unlock()
+func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
+	if originAccountID == destinationAccountID {
+		return &transfer.Transfer{}, transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent
+	}
 
-	return f(ctx, originAccountID, destinationAccountID, amount)
+	u.mux.Lock()
+	originMutex := u.getAccountMutexOrCreate(originAccountID)
+	destinationMutex := u.getAccountMutexOrCreate(destinationAccountID)
+	originMutex.Lock()
+	destinationMutex.Lock()
+	u.mux.Unlock()
+
+	t, err := u.handleCreateTransferBussLogic(ctx, originAccountID, destinationAccountID, amount)
+
+	originMutex.Unlock()
+	destinationMutex.Unlock()
+
+	u.mux.Lock()
+	delete(u.accountMutexes, originAccountID)
+	delete(u.accountMutexes, destinationAccountID)
+	u.mux.Unlock()
+
+	return t, err
+}
+func (u TransferUsecase) getAccountMutexOrCreate(accountID int) *sync.Mutex {
+	accountMutex, ok := u.accountMutexes[accountID]
+	if !ok {
+		accountMutex = &sync.Mutex{}
+		u.accountMutexes[accountID] = accountMutex
+	}
+	return accountMutex
 }
 
 func (u TransferUsecase) handleCreateTransferBussLogic(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
