@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"sync"
@@ -38,22 +37,7 @@ func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, or
 	u.mux.Lock()
 	defer u.mux.Unlock()
 
-	// Prevents a dead lock with it self where is called Do two times on same key by same goroutine.
-	if originAccountID == destinationAccountID {
-		return &transfer.Transfer{}, transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent
-	}
-
-	t, err, _ := u.group.Do(fmt.Sprint(originAccountID), func() (interface{}, error) {
-		defer u.group.Forget(fmt.Sprint(originAccountID))
-		t, err, _ := u.group.Do(fmt.Sprint(destinationAccountID), func() (interface{}, error) {
-			defer u.group.Forget(fmt.Sprint(destinationAccountID))
-
-			return f(ctx, originAccountID, destinationAccountID, amount)
-		})
-		return t, err
-	})
-
-	return t.(*transfer.Transfer), err
+	return f(ctx, originAccountID, destinationAccountID, amount)
 }
 
 func (u TransferUsecase) handleCreateTransferBussLogic(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
