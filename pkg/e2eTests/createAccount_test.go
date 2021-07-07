@@ -3,7 +3,6 @@ package e2etest
 import (
 	"context"
 	"encoding/json"
-	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -47,7 +46,7 @@ func TestCreateAccount(t *testing.T) {
 			t.FailNow()
 		}
 
-		var respAccount account.Account
+		var respAccount rest.CreatedAccountResponse
 		err := json.NewDecoder(resp.Body).Decode(&respAccount)
 		if err != nil {
 			t.Errorf("Invalid response format: %v", err)

@@ -45,7 +45,7 @@ func TestListAccounts(t *testing.T) {
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status code was OK and not %v", resp.Status)
 		}
-		var reqAccounts []account.Account
+		var reqAccounts []rest.GetAccountResponse
 		err := json.NewDecoder(resp.Body).Decode(&reqAccounts)
 		if err != nil {
 			t.Errorf("Response could not be parsed: %v", err)
