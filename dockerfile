@@ -9,8 +9,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app  cmd/api/main
 
 FROM alpine:latest
 
+ENV MIGRATIONS_FOLDER_URL=file:///root/pkg/gateway/db/postgres/migrations
+
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=build /go/src/app .
-RUN ls
 CMD ["./app"]  

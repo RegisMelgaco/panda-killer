@@ -12,7 +12,7 @@ const (
 	migrationsFolderUrlEnvKey           = "MIGRATIONS_FOLDER_URL"
 	migrationsFolderUrlEnvNotSetMessage = "migrations folder url in environment variable " + migrationsFolderUrlEnvKey + " not set"
 
-	restApiPortEnvKey           = "REST_API_PORT"
+	restApiPortEnvKey           = "REST_API_ADDRESS"
 	restApiPortEnvNotSetMessage = "rest api port environment variable (" + restApiPortEnvKey + ") is not set"
 
 	accessSecretEnvKey           = "ACCESS_SECRET"
