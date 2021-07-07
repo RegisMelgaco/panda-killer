@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/auth"
 	"local/panda-killer/pkg/domain/entity/transfer"
@@ -25,7 +26,8 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 		}
 
 		createdAccount, err := usecase.CreateAccount(r.Context(), requestBody.Balance, requestBody.Name, requestBody.CPF, requestBody.Password)
-		if err == account.ErrAccountCPFShouldHaveLength11 || err == account.ErrAccountNameIsObligatory {
+		if errors.Is(err, account.ErrAccountCPFShouldHaveLength11) ||
+			errors.Is(err, account.ErrAccountNameIsObligatory) {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(ErrorResponse{Message: err.Error()})
 			return
@@ -70,7 +72,7 @@ func GetAccountBalance(usecase *usecase.AccountUsecase) http.HandlerFunc {
 		}
 
 		balance, err := usecase.GetBalance(r.Context(), accountID)
-		if err == account.ErrAccountNotFound {
+		if errors.Is(err, account.ErrAccountNotFound) {
 			rw.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -100,10 +102,10 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 			body.DestinationAccountID,
 			body.Amount,
 		)
-		if err == transfer.ErrInsufficientFundsToMakeTransaction ||
-			err == transfer.ErrTransferAmountShouldBeGreatterThanZero ||
-			err == account.ErrAccountNotFound ||
-			err == transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent {
+		if errors.Is(err, transfer.ErrInsufficientFundsToMakeTransaction) ||
+			errors.Is(err, transfer.ErrTransferAmountShouldBeGreatterThanZero) ||
+			errors.Is(err, account.ErrAccountNotFound) ||
+			errors.Is(err, transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent) {
 			rw.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(rw).Encode(ErrorResponse{Message: err.Error()})
 			return
@@ -156,7 +158,7 @@ func Login(authUsecase *usecase.AuthUsecase) http.HandlerFunc {
 		}
 
 		session, err := authUsecase.Login(r.Context(), credentials.CPF, credentials.Password)
-		if err == auth.ErrInvalidCredentials {
+		if errors.Is(err, auth.ErrInvalidCredentials) {
 			rw.WriteHeader(http.StatusUnauthorized)
 			return
 		}

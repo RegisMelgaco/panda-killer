@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
 
 	"github.com/jackc/pgx/v4"
@@ -63,7 +64,7 @@ func (r AccountRepoImpl) GetAccount(ctx context.Context, accountID int) (*accoun
 
 	var a account.Account
 	err := row.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
-	if err == pgx.ErrNoRows {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return &account.Account{}, nil
 	}
 
@@ -75,7 +76,7 @@ func (r AccountRepoImpl) GetAccountByCPF(ctx context.Context, cpf string) (*acco
 
 	var a account.Account
 	err := row.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
-	if err == pgx.ErrNoRows {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return &account.Account{}, nil
 	}
 
