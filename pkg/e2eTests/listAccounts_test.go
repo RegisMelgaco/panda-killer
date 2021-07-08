@@ -12,9 +12,8 @@ import (
 	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestListAccounts(t *testing.T) {
@@ -51,7 +50,10 @@ func TestListAccounts(t *testing.T) {
 			t.Errorf("Response could not be parsed: %v", err)
 			t.FailNow()
 		}
-		assert.ObjectsAreEqualValues(reqAccounts, testAccounts)
+
+		if !reflect.DeepEqual(reqAccounts, testAccounts) {
+			t.Errorf("Expected reqAccounts and testAccounts to be equals: reqAccounts=%v testAccounts=%v", reqAccounts, testAccounts)
+		}
 	})
 
 	postgres.DownToMigrationZero()

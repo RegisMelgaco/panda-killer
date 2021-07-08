@@ -8,6 +8,7 @@ import (
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
+	_ "local/panda-killer/swagger"
 	"net/http"
 	"time"
 
