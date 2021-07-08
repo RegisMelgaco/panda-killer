@@ -39,3 +39,36 @@ go run cmd/api/main.go
 ```bash
 go test ./...
 ```
+
+## Tasks do Régis
+- [x] Criar os use cases dos endponts que já foram criados
+- [x] Teste pra list accounts
+- [x] Test pra caso de falha na criação de account (parametro inválidos por exemplo)
+- [x] Reaproveitar concexões
+- [x] Testar a persistencia da account usando repository
+- [x] Interface do AccountRepo deve ir pra camada de domain
+- [x] Terminar cursos do Studa
+- [x] Finalizar casos de uso de account (balance)
+- [x] Revisar projeto
+- [x] Usar structs de response para os retornos de endpoint
+- [x] Retrabalhar as documentações
+- [x] Revisar sistema de logging
+- [x] Implementar casos de uso de transfers (pro caso de meu serviço possuir somente uma instancias) {teste em caso de falha no meio da transfer (entre burn e mint)}
+- [x] Tirar float pra representar dinheiro
+- [x] Transferencia com amount negativo
+- [x] Criar conta deve salvar senha hasheada com seu salt (secret)
+- [x] Implementar logging com sucesso
+- [x] Implementar logging com falha por account inexistente
+- [x] Implementar logging com falha por senha errada
+- [x] Refatorar transfers para usar sessão
+- [x] Por "como rodar" no readme.md
+- [x] Teste de concorrencia
+- [x] Refatrar para usar request struct (mascara para entrada e saída de dados)
+- [x] Usar o errors.Is() pra checkagem de erros
+- [x] Testes devem limpar seus estados após a execução
+- [x] Ver o lance de todo mundo referenciar as entities
+- [ ] Refatorar testes para usar tabela de casos
+- [ ] Implementar sistema de permissões
+- [ ] Swagger
+- [ ] Usar gRPC nos endpoints já criados
+- [ ] Por no readme "pontos interessantes"
