@@ -89,4 +89,6 @@ func TestCreateAccount(t *testing.T) {
 			t.Errorf("Server should answer with bad request: %v", resp)
 		}
 	})
+
+	postgres.DownToMigrationZero()
 }

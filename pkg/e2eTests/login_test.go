@@ -94,4 +94,6 @@ func TestLogin(t *testing.T) {
 			t.Error("Authorization header should be set.")
 		}
 	})
+
+	postgres.DownToMigrationZero()
 }

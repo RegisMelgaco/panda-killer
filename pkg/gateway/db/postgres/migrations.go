@@ -36,3 +36,25 @@ func RunMigrations() error {
 
 	return nil
 }
+
+func DownToMigrationZero() {
+	dbUrl, err := config.GetDBUrl()
+	if err != nil {
+		panic(err)
+	}
+
+	migrationsUrl, err := config.GetMigrationsFolderUrl()
+	if err != nil {
+		panic(err)
+	}
+
+	m, err := migrate.New(migrationsUrl, dbUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	err = m.Down()
+	for err != nil {
+		err = m.Down()
+	}
+}

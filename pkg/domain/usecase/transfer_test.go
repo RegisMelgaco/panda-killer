@@ -84,7 +84,7 @@ func TestHandleCreateTransferParallelism(t *testing.T) {
 		go transactionUsecase.CreateTransfer(ctx, account2, account1, 42)
 
 		// Wait transaction go routines go sleep in final state
-		time.Sleep(time.Millisecond * 1000)
+		time.Sleep(time.Millisecond * 10)
 		if transferRepo.count.num != 1 {
 			t.Errorf("It was expected to only one transfer to trigger CreateTransferAndUpdateAccountsBalances. %v", transferRepo.count.num)
 		}

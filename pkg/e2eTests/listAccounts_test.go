@@ -53,4 +53,6 @@ func TestListAccounts(t *testing.T) {
 		}
 		assert.ObjectsAreEqualValues(reqAccounts, testAccounts)
 	})
+
+	postgres.DownToMigrationZero()
 }

@@ -65,4 +65,6 @@ func TestGetAccountBalance(t *testing.T) {
 			t.Errorf("Expected header was NOT FOUND and not %v", resp.Status)
 		}
 	})
+
+	postgres.DownToMigrationZero()
 }

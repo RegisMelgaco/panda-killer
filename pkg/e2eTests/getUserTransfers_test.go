@@ -142,4 +142,6 @@ func TestGetUserTransfers(t *testing.T) {
 			t.Errorf("Expected request response body to be %v and not %v", expectedResponse, requestedTransfers)
 		}
 	})
+
+	postgres.DownToMigrationZero()
 }

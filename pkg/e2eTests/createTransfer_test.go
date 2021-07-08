@@ -242,4 +242,6 @@ func TestCreateTransfer(t *testing.T) {
 			t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent.Error(), respBody.Message)
 		}
 	})
+
+	postgres.DownToMigrationZero()
 }
