@@ -35,8 +35,9 @@ func TestListAccounts(t *testing.T) {
 		client := requests.Client{Host: ts.URL}
 
 		testAccounts := []account.Account{{Name: "João", CPF: "60684316730", Secret: "s"}, {Name: "Maria", CPF: "47577807613", Secret: "s"}}
-		for _, a := range testAccounts {
+		for i, a := range testAccounts {
 			accountRepo.CreateAccount(context.Background(), &a)
+			testAccounts[i] = a
 		}
 
 		resp, _ := client.ListAccounts()
@@ -51,8 +52,16 @@ func TestListAccounts(t *testing.T) {
 			t.FailNow()
 		}
 
-		if !reflect.DeepEqual(reqAccounts, testAccounts) {
-			t.Errorf("Expected reqAccounts and testAccounts to be equals: reqAccounts=%v testAccounts=%v", reqAccounts, testAccounts)
+		var testAccountsAsRequest []rest.GetAccountResponse
+		for _, a := range testAccounts {
+			testAccountsAsRequest = append(testAccountsAsRequest, rest.GetAccountResponse{
+				ID:   a.ID,
+				Name: a.Name,
+				CPF:  a.CPF,
+			})
+		}
+		if !reflect.DeepEqual(reqAccounts, testAccountsAsRequest) {
+			t.Errorf("Expected reqAccounts and testAccountsAsRequest to be equals: reqAccounts=%v testAccountsAsRequest=%v", reqAccounts, testAccountsAsRequest)
 		}
 	})
 
