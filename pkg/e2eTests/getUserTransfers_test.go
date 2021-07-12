@@ -143,5 +143,17 @@ func TestGetUserTransfers(t *testing.T) {
 		}
 	})
 
+	t.Run("Request transfers while unlogged should retrive unauthorized", func(t *testing.T) {
+		req, err := client.ListTransfers("Invalid authorization header")
+		if err != nil {
+			t.Errorf("Failed to make request")
+			t.FailNow()
+		}
+
+		if req.StatusCode != http.StatusUnauthorized {
+			t.Errorf("Expected request status to be UNAUTHORIZED and not %v", req.Status)
+		}
+	})
+
 	postgres.DownToMigrationZero()
 }

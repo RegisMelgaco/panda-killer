@@ -26,6 +26,7 @@ func JwtAuthentication(next http.Handler) http.Handler {
 		})
 
 		if err != nil || !token.Valid {
+			rw.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
