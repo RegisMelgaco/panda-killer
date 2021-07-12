@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"os"
+	"strings"
 )
 
 const (
@@ -15,16 +16,18 @@ const (
 	restApiPortEnvKey           = "REST_API_ADDRESS"
 	restApiPortEnvNotSetMessage = "rest api port environment variable (" + restApiPortEnvKey + ") is not set"
 
-	accessSecretEnvKey           = "ACCESS_SECRET"
-	accessSecretEnvNotSetMessage = "access secret environment variable (" + accessSecretEnvKey + ") is not set"
+	accessSecretEnvKey           = "DEBUG_MODE"
+	accessSecretEnvNotSetMessage = "debug mode environment variable (" + accessSecretEnvKey + ") is not set"
+
+	debugModeEnvKey = "DEBUG_MODE"
 )
 
 func getEnvVariable(variableKey, errorMessage string) (string, error) {
-	url, isEnvVariableSet := os.LookupEnv(variableKey)
+	envVariable, isEnvVariableSet := os.LookupEnv(variableKey)
 	if !isEnvVariableSet {
 		return "", errors.New(errorMessage)
 	}
-	return url, nil
+	return envVariable, nil
 }
 
 func GetDBUrl() (string, error) {
@@ -41,4 +44,12 @@ func GetRestApiPort() (string, error) {
 
 func GetAccessSecret() (string, error) {
 	return getEnvVariable(accessSecretEnvKey, accessSecretEnvNotSetMessage)
+}
+
+func GetDebugMode() bool {
+	envVariable, isEnvVariableSet := os.LookupEnv(debugModeEnvKey)
+	if !isEnvVariableSet {
+		return false
+	}
+	return strings.ToLower(envVariable) == "true"
 }

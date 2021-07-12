@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/usecase"
 	"net/http"
 	"time"
@@ -10,20 +11,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// @title Swagger Example API
-// @version 1.0
-// @description This is a sample server Petstore server.
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host petstore.swagger.io
-// @BasePath /v2
 func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *usecase.TransferUsecase, authUsecase *usecase.AuthUsecase) http.Handler {
 	r := chi.NewRouter()
 
@@ -53,12 +40,14 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *useca
 		r.Post("/login", Login(authUsecase))
 	})
 
-	r.Route("/", func(r chi.Router) {
-		r.Use(middleware.SetHeader("Content-type", ""))
-		r.Get("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL("http://localhost:8000/swagger/doc.json"), //The url pointing to API definition"
-		))
-	})
+	if config.GetDebugMode() {
+		r.Route("/", func(r chi.Router) {
+			r.Use(middleware.SetHeader("Content-type", ""))
+			r.Get("/swagger/*", httpSwagger.Handler(
+				httpSwagger.URL("http://localhost:8000/swagger/doc.json"), //The url pointing to API definition"
+			))
+		})
+	}
 
 	return r
 }

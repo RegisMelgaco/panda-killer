@@ -40,6 +40,15 @@ go run cmd/api/main.go
 go test ./...
 ```
 
+**Gerar documentação Swagger**
+
+requisito: Swag CLI (github.com/swaggo/swag)
+
+```bash
+swag i -g cmd/api/main.go -o swagger/
+```
+
+
 ## Tasks do Régis
 - [x] Criar os use cases dos endponts que já foram criados
 - [x] Teste pra list accounts
@@ -67,8 +76,8 @@ go test ./...
 - [x] Usar o errors.Is() pra checkagem de erros
 - [x] Testes devem limpar seus estados após a execução
 - [x] Ver o lance de todo mundo referenciar as entities
-- [ ] Refatorar testes para usar tabela de casos
-- [ ] Implementar sistema de permissões
-- [ ] Swagger
+- [x] Swagger
 - [ ] Usar gRPC nos endpoints já criados
+- [ ] Refatorar testes para usar tabela de casos
 - [ ] Por no readme "pontos interessantes"
+- [ ] Implementar sistema de permissões

@@ -16,6 +16,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// @title Panda Killer >:D
+// @version 1.0
+// @description Um projeto para estudar diversas tecnologias, tecnicas e práticas utilizadas no desenvolvimento de WEB-APIs com uso de Go(lang).
+// @description Mais informações no repo > https://github.com/RegisMelgaco/panda-killer
+//
+// @securitydefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	log.Info("Server is starting ...")
 
