@@ -5,6 +5,7 @@ import (
 	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
 
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -25,12 +26,18 @@ const (
 	`
 )
 
-func (r AccountRepoImpl) CreateAccount(ctx context.Context, account *account.Account) error {
+func (r AccountRepoImpl) CreateAccount(ctx context.Context, a *account.Account) error {
 	err := r.conn.QueryRow(
 		ctx,
 		"INSERT INTO account(name, cpf, secret, balance, created_at) values($1, $2, $3, $4, $5) RETURNING account_id;",
-		account.Name, account.CPF, account.Secret, account.Balance, account.CreatedAt,
-	).Scan(&account.ID)
+		a.Name, a.CPF, a.Secret, a.Balance, a.CreatedAt,
+	).Scan(&a.ID)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == "23505" {
+			return account.ErrAccountCPFShouldBeUnique
+		}
+	}
 	if err != nil {
 		return err
 	}

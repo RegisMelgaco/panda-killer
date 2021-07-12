@@ -3,6 +3,7 @@ package e2etest
 import (
 	"context"
 	"encoding/json"
+	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -12,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestCreateAccount(t *testing.T) {
@@ -80,13 +82,67 @@ func TestCreateAccount(t *testing.T) {
 			t.Errorf("Persisted secret from account should match to it's password.")
 		}
 	})
-	t.Run("Creating account with invalid account shouldn't persist account", func(t *testing.T) {
-		testAccount := rest.CreateAccountRequest{}
+
+	t.Run("Create account with repeated cpf should retrieve BAD REQUEST and error", func(t *testing.T) {
+		repeatedCPF := "12345678901"
+
+		err := accountRepo.CreateAccount(context.Background(), &account.Account{
+			Name:      "Joe",
+			CPF:       repeatedCPF,
+			Secret:    ";)",
+			CreatedAt: time.Now(),
+		})
+		if err != nil {
+			t.Errorf("Failed to create test account: %v", err)
+			t.FailNow()
+		}
+
+		resp, err := client.CreateAccount(rest.CreateAccountRequest{
+			Name: "Joe",
+			CPF:  repeatedCPF,
+		})
+		if err != nil {
+			t.Errorf("Failed to request account creation: %v", err)
+			t.FailNow()
+		}
+
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("Expected response status to be BAD REQUEST and not %v", resp.Status)
+		}
+
+		var errResp rest.ErrorResponse
+		err = json.NewDecoder(resp.Body).Decode(&errResp)
+		if err != nil {
+			t.Errorf("Failed to decode request body: %v", err)
+			t.FailNow()
+		}
+
+		if errResp.Message != account.ErrAccountCPFShouldBeUnique.Error() {
+			t.Errorf("Expected error response to be '%v' and not '%v'", account.ErrAccountCPFShouldBeUnique.Error(), errResp.Message)
+		}
+	})
+
+	t.Run("Creating account with cpf with length diffrent from 11 should retrive error and BAD REQUEST", func(t *testing.T) {
+		testAccount := rest.CreateAccountRequest{
+			CPF:  "123",
+			Name: "Joe",
+		}
 
 		resp, _ := client.CreateAccount(testAccount)
 
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Errorf("Server should answer with bad request: %v", resp)
+		}
+
+		var errorResp rest.ErrorResponse
+		err := json.NewDecoder(resp.Body).Decode(&errorResp)
+		if err != nil {
+			t.Errorf("Failed to parse response: %v", err)
+			t.FailNow()
+		}
+
+		if errorResp.Message != account.ErrAccountCPFShouldHaveLength11.Error() {
+			t.Errorf("Received message diffrent from expected: expected=%v actual=%v", account.ErrAccountCPFShouldHaveLength11.Error(), errorResp.Message)
 		}
 	})
 
