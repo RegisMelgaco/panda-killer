@@ -27,3 +27,17 @@ func (s *Api) CreateAccount(ctx context.Context, accountReq *gen.CreateAccountRe
 
 	return &gen.CreateAccountResponse{Id: int32(createdAccount.ID)}, nil
 }
+
+func (s *Api) GetAccountBalance(ctx context.Context, request *gen.GetAccountBalanceRequest) (*gen.GetAccountBalanceResponse, error) {
+	balance, err := s.accountUsecase.GetBalance(ctx, int(request.AccountId))
+	if errors.Is(err, account.ErrAccountNotFound) {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	if err != nil {
+		return nil, status.Error(codes.Internal, "")
+	}
+
+	return &gen.GetAccountBalanceResponse{
+		Balance: int32(balance),
+	}, nil
+}

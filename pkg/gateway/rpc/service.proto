@@ -17,6 +17,13 @@ service PandaKiller {
             body: "*"
         };
     }
+
+    rpc GetAccountBalance (GetAccountBalanceRequest) returns (GetAccountBalanceResponse) {
+        option (google.api.http) = {
+            post: "/accounts/{account_id}/balance"
+            body: "*"
+        };
+    }
 }
 
 message CreateAccountRequest {
@@ -28,4 +35,12 @@ message CreateAccountRequest {
 
 message CreateAccountResponse {
     int32 id = 1;
+}
+
+message GetAccountBalanceRequest {
+    int32 account_id = 1;
+}
+
+message GetAccountBalanceResponse {
+    int32 balance = 1;
 }
