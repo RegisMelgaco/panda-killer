@@ -5,11 +5,14 @@ services:
         build: .
         ports: 
             - 8000:8000
+            - 8090:8090
         depends_on:
             - db
         env_file: .env
     db:
         image: postgres:13.3
+        ports: 
+            - 5432:5432
         environment:
             - POSTGRES_DB=postgres
             - POSTGRES_USER=postgres

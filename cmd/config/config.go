@@ -16,8 +16,11 @@ const (
 	restApiPortEnvKey           = "REST_API_ADDRESS"
 	restApiPortEnvNotSetMessage = "rest api port environment variable (" + restApiPortEnvKey + ") is not set"
 
-	accessSecretEnvKey           = "DEBUG_MODE"
-	accessSecretEnvNotSetMessage = "debug mode environment variable (" + accessSecretEnvKey + ") is not set"
+	grpcApiPortEnvKey           = "GRPC_API_ADDRESS"
+	grpcApiPortEnvNotSetMessage = "grpc api port environment variable (" + grpcApiPortEnvKey + ") is not set"
+
+	accessSecretEnvKey           = "ACCESS_SECRET"
+	accessSecretEnvNotSetMessage = "access secret environment variable (" + accessSecretEnvKey + ") is not set"
 
 	debugModeEnvKey = "DEBUG_MODE"
 )
@@ -39,6 +42,10 @@ func GetMigrationsFolderUrl() (string, error) {
 }
 
 func GetRestApiPort() (string, error) {
+	return getEnvVariable(grpcApiPortEnvKey, grpcApiPortEnvNotSetMessage)
+}
+
+func GetGRPCApiPort() (string, error) {
 	return getEnvVariable(restApiPortEnvKey, restApiPortEnvNotSetMessage)
 }
 

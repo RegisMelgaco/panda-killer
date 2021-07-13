@@ -26,7 +26,8 @@ docker-compose up
 
 **variáveis de ambiente:**
 - DB_URL={{url de acesso para o postgres}}
-- REST_API_ADDRESS={{the desired address or port}}
+- REST_API_ADDRESS={{the desired address or port for the rest api}}
+- GRPC_API_ADDRESS={{the desired address or port for the grpc api}}
 - ACCESS_SECRET={{the private key for encryption algorithms like JWT signature}}
 - MIGRATIONS_FOLDER_URL={{path to the migrations folder inside the project (the dockerfile contains a example)}}
 
@@ -48,6 +49,17 @@ requisito: Swag CLI (github.com/swaggo/swag)
 swag i -g cmd/api/main.go -o swagger/
 ```
 
+**Build gRPC code**
+```bash
+protoc --go_out=. --go_opt=paths=import \
+    --go-grpc_out=. --go-grpc_opt=paths=import \
+    pkg/gateway/grpc/service.proto
+```
+
+**Update buf dependencies**
+```bash
+buf beta mod update
+```
 
 ## Tasks do Régis
 - [x] Criar os use cases dos endponts que já foram criados

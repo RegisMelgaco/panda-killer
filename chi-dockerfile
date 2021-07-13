@@ -6,11 +6,16 @@ WORKDIR /go/src/app
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
+# Install Swagger docs builder cli tool
+RUN go get -u github.com/swaggo/swag/cmd/swag
 
 COPY . .
 
+# Build docs
+RUN swag i -g cmd/grpcApi/main.go -o swagger/
+
 # Build api binary
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app  cmd/grpcApi/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app  cmd/api/main.go
 
 ############################### build done #################################
 

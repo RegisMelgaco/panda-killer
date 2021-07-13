@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
-	"local/panda-killer/pkg/e2eTests/requests"
+	"local/panda-killer/pkg/e2eTests/chi/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/repository"
