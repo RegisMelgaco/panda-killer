@@ -7,6 +7,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PandaKillerClient interface {
 	CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*CreateAccountResponse, error)
+	ListAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetAccountListResponse, error)
 	GetAccountBalance(ctx context.Context, in *GetAccountBalanceRequest, opts ...grpc.CallOption) (*GetAccountBalanceResponse, error)
 }
 
@@ -39,6 +41,15 @@ func (c *pandaKillerClient) CreateAccount(ctx context.Context, in *CreateAccount
 	return out, nil
 }
 
+func (c *pandaKillerClient) ListAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetAccountListResponse, error) {
+	out := new(GetAccountListResponse)
+	err := c.cc.Invoke(ctx, "/pandakiller.PandaKiller/ListAccounts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *pandaKillerClient) GetAccountBalance(ctx context.Context, in *GetAccountBalanceRequest, opts ...grpc.CallOption) (*GetAccountBalanceResponse, error) {
 	out := new(GetAccountBalanceResponse)
 	err := c.cc.Invoke(ctx, "/pandakiller.PandaKiller/GetAccountBalance", in, out, opts...)
@@ -53,6 +64,7 @@ func (c *pandaKillerClient) GetAccountBalance(ctx context.Context, in *GetAccoun
 // for forward compatibility
 type PandaKillerServer interface {
 	CreateAccount(context.Context, *CreateAccountRequest) (*CreateAccountResponse, error)
+	ListAccounts(context.Context, *emptypb.Empty) (*GetAccountListResponse, error)
 	GetAccountBalance(context.Context, *GetAccountBalanceRequest) (*GetAccountBalanceResponse, error)
 }
 
@@ -62,6 +74,9 @@ type UnimplementedPandaKillerServer struct {
 
 func (UnimplementedPandaKillerServer) CreateAccount(context.Context, *CreateAccountRequest) (*CreateAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
+}
+func (UnimplementedPandaKillerServer) ListAccounts(context.Context, *emptypb.Empty) (*GetAccountListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAccounts not implemented")
 }
 func (UnimplementedPandaKillerServer) GetAccountBalance(context.Context, *GetAccountBalanceRequest) (*GetAccountBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccountBalance not implemented")
@@ -96,6 +111,24 @@ func _PandaKiller_CreateAccount_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PandaKiller_ListAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PandaKillerServer).ListAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pandakiller.PandaKiller/ListAccounts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PandaKillerServer).ListAccounts(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PandaKiller_GetAccountBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAccountBalanceRequest)
 	if err := dec(in); err != nil {
@@ -124,6 +157,10 @@ var PandaKiller_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateAccount",
 			Handler:    _PandaKiller_CreateAccount_Handler,
+		},
+		{
+			MethodName: "ListAccounts",
+			Handler:    _PandaKiller_ListAccounts_Handler,
 		},
 		{
 			MethodName: "GetAccountBalance",

@@ -6,8 +6,10 @@ import (
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/gateway/rpc/gen"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (s *Api) CreateAccount(ctx context.Context, accountReq *gen.CreateAccountRequest) (*gen.CreateAccountResponse, error) {
@@ -40,4 +42,19 @@ func (s *Api) GetAccountBalance(ctx context.Context, request *gen.GetAccountBala
 	return &gen.GetAccountBalanceResponse{
 		Balance: int32(balance),
 	}, nil
+}
+
+func (s *Api) ListAccounts(ctx context.Context, in *emptypb.Empty) (*gen.GetAccountListResponse, error) {
+	accounts, err := s.accountUsecase.GetAccounts(ctx)
+	if err != nil {
+		logrus.Errorf("AccountRepo failed to get accounts: %v", err)
+		return nil, status.Error(codes.Internal, "")
+	}
+
+	var response gen.GetAccountListResponse
+	for _, a := range accounts {
+		response.Accounts = append(response.Accounts, &gen.GetAccountResponse{Id: int32(a.ID), Name: a.Name, Cpf: a.CPF})
+	}
+
+	return &response, nil
 }

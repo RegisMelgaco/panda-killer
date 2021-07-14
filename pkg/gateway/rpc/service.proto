@@ -18,6 +18,12 @@ service PandaKiller {
         };
     }
 
+    rpc ListAccounts(google.protobuf.Empty) returns (GetAccountListResponse) {
+        option (google.api.http) = {
+            get: "/accounts"
+        };
+    }
+
     rpc GetAccountBalance (GetAccountBalanceRequest) returns (GetAccountBalanceResponse) {
         option (google.api.http) = {
             post: "/accounts/{account_id}/balance"
@@ -43,4 +49,14 @@ message GetAccountBalanceRequest {
 
 message GetAccountBalanceResponse {
     int32 balance = 1;
+}
+
+message GetAccountResponse {
+    int32 id = 1;
+    string name = 2;
+    string cpf = 3;
+}
+
+message GetAccountListResponse {
+    repeated GetAccountResponse accounts = 1;
 }
