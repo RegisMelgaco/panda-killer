@@ -32,7 +32,9 @@ func main() {
 
 	accountRepo := repository.NewAccountRepo(pgConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
+	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
+	authUsecase := usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo)
 
 	grpcPort, err := config.GetGRPCApiPort()
 	if err != nil {
@@ -49,7 +51,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	api := rpc.NewApi(accountUsecase)
+	api := rpc.NewApi(accountUsecase, authUsecase)
 	gen.RegisterPandaKillerServer(s, api)
 
 	go func() {

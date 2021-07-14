@@ -25,7 +25,9 @@ func TestCreateAccountGRPC(t *testing.T) {
 	accountRepo := repository.NewAccountRepo(pgxConn)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 
-	s := rpc.NewApi(accountUsecase)
+	s := &rpc.Api{
+		AccountUsecase: accountUsecase,
+	}
 
 	t.Run("Creating account successfully should persist account", func(t *testing.T) {
 		testAccount := &gen.CreateAccountRequest{

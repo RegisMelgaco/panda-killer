@@ -26,7 +26,7 @@ func TestListAccounts(t *testing.T) {
 	accountRepo := repository.NewAccountRepo(pgxConn)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 
-	s := rpc.NewApi(accountUsecase)
+	s := &rpc.Api{AccountUsecase: accountUsecase}
 
 	t.Run("List Accounts successfully should return persisted accounts", func(t *testing.T) {
 		testAccounts := []account.Account{{Name: "João", CPF: "60684316730", Secret: "s"}, {Name: "Maria", CPF: "47577807613", Secret: "s"}}

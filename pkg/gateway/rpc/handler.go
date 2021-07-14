@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/auth"
 	"local/panda-killer/pkg/gateway/rpc/gen"
 
 	"github.com/sirupsen/logrus"
@@ -13,7 +14,7 @@ import (
 )
 
 func (s *Api) CreateAccount(ctx context.Context, accountReq *gen.CreateAccountRequest) (*gen.CreateAccountResponse, error) {
-	createdAccount, err := s.accountUsecase.CreateAccount(
+	createdAccount, err := s.AccountUsecase.CreateAccount(
 		ctx, int(accountReq.Balance), accountReq.Name, accountReq.Cpf, accountReq.Password,
 	)
 
@@ -31,7 +32,7 @@ func (s *Api) CreateAccount(ctx context.Context, accountReq *gen.CreateAccountRe
 }
 
 func (s *Api) GetAccountBalance(ctx context.Context, request *gen.GetAccountBalanceRequest) (*gen.GetAccountBalanceResponse, error) {
-	balance, err := s.accountUsecase.GetBalance(ctx, int(request.AccountId))
+	balance, err := s.AccountUsecase.GetBalance(ctx, int(request.AccountId))
 	if errors.Is(err, account.ErrAccountNotFound) {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -45,7 +46,7 @@ func (s *Api) GetAccountBalance(ctx context.Context, request *gen.GetAccountBala
 }
 
 func (s *Api) ListAccounts(ctx context.Context, in *emptypb.Empty) (*gen.GetAccountListResponse, error) {
-	accounts, err := s.accountUsecase.GetAccounts(ctx)
+	accounts, err := s.AccountUsecase.GetAccounts(ctx)
 	if err != nil {
 		logrus.Errorf("AccountRepo failed to get accounts: %v", err)
 		return nil, status.Error(codes.Internal, "")
@@ -57,4 +58,18 @@ func (s *Api) ListAccounts(ctx context.Context, in *emptypb.Empty) (*gen.GetAcco
 	}
 
 	return &response, nil
+}
+
+func (s *Api) Login(ctx context.Context, credentials *gen.LoginRequest) (*gen.LoginResponse, error) {
+	token, err := s.AuthUsecase.Login(ctx, credentials.Cpf, credentials.Password)
+	if errors.Is(err, auth.ErrInvalidCredentials) {
+		return nil, status.Error(codes.Unauthenticated, "")
+	}
+	if err != nil {
+		return nil, status.Error(codes.Internal, "")
+	}
+
+	return &gen.LoginResponse{
+		Token: token,
+	}, nil
 }

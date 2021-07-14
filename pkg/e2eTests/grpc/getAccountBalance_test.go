@@ -24,7 +24,9 @@ func TestGetAccountBalance(t *testing.T) {
 	accountRepo := repository.NewAccountRepo(pgxConn)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 
-	s := rpc.NewApi(accountUsecase)
+	s := &rpc.Api{
+		AccountUsecase: accountUsecase,
+	}
 
 	t.Run("Get account balance with success should retrive it's balance", func(t *testing.T) {
 		expectedBalance := 42
