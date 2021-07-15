@@ -5,6 +5,7 @@ import (
 	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/auth"
+	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/gateway/rpc/gen"
 
 	"github.com/sirupsen/logrus"
@@ -80,27 +81,23 @@ func (s *Api) CreateTransfer(ctx context.Context, request *gen.CreateTransferReq
 		return nil, status.Error(codes.Unauthenticated, "")
 	}
 
-	// createdTransfer, err := s.transferUsecase.CreateTransfer(
-	// 	ctx,
-	// 	request.OriginAccountId,
-	// 	request.DestinationAccountId,
-	// 	request.Amount,
-	// )
-	// if errors.Is(err, transfer.ErrInsufficientFundsToMakeTransaction) ||
-	// 	errors.Is(err, transfer.ErrTransferAmountShouldBeGreatterThanZero) ||
-	// 	errors.Is(err, account.ErrAccountNotFound) ||
-	// 	errors.Is(err, transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent) {
-	// 	rw.WriteHeader(http.StatusBadRequest)
-	// 	json.NewEncoder(rw).Encode(ErrorResponse{Message: err.Error()})
-	// 	return
-	// }
-	// if err != nil {
-	// 	rw.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
+	createdTransfer, err := s.TransferUsecase.CreateTransfer(
+		ctx,
+		int(request.OriginAccountId),
+		int(request.DestinationAccountId),
+		int(request.Amount),
+	)
+	if errors.Is(err, transfer.ErrInsufficientFundsToMakeTransaction) ||
+		errors.Is(err, transfer.ErrTransferAmountShouldBeGreatterThanZero) ||
+		errors.Is(err, account.ErrAccountNotFound) ||
+		errors.Is(err, transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent) {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	if err != nil {
+		return nil, status.Error(codes.Internal, "")
+	}
 
-	// rw.WriteHeader(http.StatusCreated)
-	// json.NewEncoder(rw).Encode(CreateTransferResponse{ID: createdTransfer.ID})
-
-	return nil, status.Error(codes.Unimplemented, "")
+	return &gen.CreateTransferResponse{
+		Id: int32(createdTransfer.ID),
+	}, nil
 }

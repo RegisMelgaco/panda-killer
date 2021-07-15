@@ -26,10 +26,15 @@ func TestCreateTransfer(t *testing.T) {
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
 	accountRepo := repository.NewAccountRepo(pgxConn)
+	transferRepo := repository.NewTransferRepo(pgxConn)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	authUsecase := usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo)
+	transferUsecase := usecase.NewTransferUsecase(transferRepo, accountRepo)
 
-	api := &rpc.Api{AuthUsecase: authUsecase}
+	api := &rpc.Api{
+		AuthUsecase:     authUsecase,
+		TransferUsecase: transferUsecase,
+	}
 
 	client, conn, err := StartServerAndGetClient(ctx, api)
 	defer conn.Close()

@@ -31,10 +31,12 @@ func main() {
 	postgres.RunMigrations()
 
 	accountRepo := repository.NewAccountRepo(pgConn)
+	transferRepo := repository.NewTransferRepo(pgConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	authUsecase := usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo)
+	transferUsecase := usecase.NewTransferUsecase(transferRepo, accountRepo)
 
 	grpcPort, err := config.GetGRPCApiPort()
 	if err != nil {
@@ -51,7 +53,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	api := rpc.NewApi(accountUsecase, authUsecase)
+	api := rpc.NewApi(accountUsecase, authUsecase, transferUsecase)
 	gen.RegisterPandaKillerServer(s, api)
 
 	go func() {
