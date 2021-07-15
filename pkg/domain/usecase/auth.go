@@ -48,3 +48,12 @@ func (u AuthUsecase) Login(ctx context.Context, cpf, password string) (authoriza
 	}
 	return
 }
+
+func (u AuthUsecase) AddClaimsToContext(ctx context.Context, token string) (context.Context, error) {
+	claims, err := u.sessionAlgo.GetClaims(token)
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, auth.SessionContextKey, claims), nil
+}

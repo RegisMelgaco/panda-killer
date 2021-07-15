@@ -1,6 +1,8 @@
 package auth
 
-import "local/panda-killer/pkg/domain/entity/account"
+import (
+	"local/panda-killer/pkg/domain/entity/account"
+)
 
 type PasswordHashingAlgorithms interface {
 	GenerateSecretFromPassword(string) (string, error)
@@ -10,4 +12,5 @@ type PasswordHashingAlgorithms interface {
 
 type SessionTokenAlgorithms interface {
 	GenerateSessionToken(*account.Account) (string, error)
+	GetClaims(token string) (*Claims, error)
 }

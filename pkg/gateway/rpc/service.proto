@@ -37,6 +37,13 @@ service PandaKiller {
             body: "*"
         };
     }
+
+    rpc CreateTransfer(CreateTransferRequest) returns (CreateTransferResponse) {
+        option (google.api.http) = {
+            post: "/auth/login"
+            body: "*"
+        };
+    }
 }
 
 message CreateAccountRequest {
@@ -75,4 +82,14 @@ message LoginRequest {
 
 message LoginResponse {
     string token = 1;
+}
+
+message CreateTransferRequest {
+    int32 origin_account_id = 1;
+    int32 destination_account_id = 2;
+    int32 amount = 3;
+}
+
+message CreateTransferResponse {
+    int32 id = 1;
 }

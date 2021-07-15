@@ -73,3 +73,34 @@ func (s *Api) Login(ctx context.Context, credentials *gen.LoginRequest) (*gen.Lo
 		Token: token,
 	}, nil
 }
+
+func (s *Api) CreateTransfer(ctx context.Context, request *gen.CreateTransferRequest) (*gen.CreateTransferResponse, error) {
+	claims := ctx.Value(auth.SessionContextKey)
+	if claims == nil {
+		return nil, status.Error(codes.Unauthenticated, "")
+	}
+
+	// createdTransfer, err := s.transferUsecase.CreateTransfer(
+	// 	ctx,
+	// 	request.OriginAccountId,
+	// 	request.DestinationAccountId,
+	// 	request.Amount,
+	// )
+	// if errors.Is(err, transfer.ErrInsufficientFundsToMakeTransaction) ||
+	// 	errors.Is(err, transfer.ErrTransferAmountShouldBeGreatterThanZero) ||
+	// 	errors.Is(err, account.ErrAccountNotFound) ||
+	// 	errors.Is(err, transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent) {
+	// 	rw.WriteHeader(http.StatusBadRequest)
+	// 	json.NewEncoder(rw).Encode(ErrorResponse{Message: err.Error()})
+	// 	return
+	// }
+	// if err != nil {
+	// 	rw.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// rw.WriteHeader(http.StatusCreated)
+	// json.NewEncoder(rw).Encode(CreateTransferResponse{ID: createdTransfer.ID})
+
+	return nil, status.Error(codes.Unimplemented, "")
+}
