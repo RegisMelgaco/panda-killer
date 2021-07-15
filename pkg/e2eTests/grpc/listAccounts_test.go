@@ -51,7 +51,7 @@ func TestListAccounts(t *testing.T) {
 			})
 		}
 		if !reflect.DeepEqual(accountList.Accounts, testAccountsAsRequest.Accounts) {
-			t.Errorf("Expected accountList and testAccountsAsRequest to be equals: reqAccounts=%v testAccountsAsRequest=%v", accountList, testAccountsAsRequest)
+			t.Errorf("Expected accountList and testAccountsAsRequest to be equals: reqAccounts=%v testAccountsAsRequest=%v", accountList, testAccountsAsRequest.Accounts)
 		}
 	})
 

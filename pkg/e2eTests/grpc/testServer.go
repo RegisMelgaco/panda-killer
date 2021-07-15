@@ -32,6 +32,9 @@ func StartServerAndGetClient(ctx context.Context, api *rpc.Api) (gen.PandaKiller
 	}
 
 	grpcConn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(getBufDialer(lis)), grpc.WithInsecure())
+	if err != nil {
+		return nil, nil, err
+	}
 
 	client := gen.NewPandaKillerClient(grpcConn)
 	return client, conn, nil
