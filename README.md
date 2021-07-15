@@ -89,7 +89,7 @@ buf beta mod update
 - [x] Testes devem limpar seus estados após a execução
 - [x] Ver o lance de todo mundo referenciar as entities
 - [x] Swagger
-- [ ] Usar gRPC nos endpoints já criados
+- [x] Usar gRPC nos endpoints já criados
 - [ ] Refatorar testes para usar tabela de casos
 - [ ] Por no readme "pontos interessantes"
 - [ ] Implementar sistema de permissões
