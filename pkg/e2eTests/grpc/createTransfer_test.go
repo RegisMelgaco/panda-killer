@@ -3,6 +3,7 @@ package e2etest
 import (
 	"context"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
@@ -108,153 +109,121 @@ func TestCreateTransfer(t *testing.T) {
 		}
 	})
 
-	// t.Run("Create transfer without insufficient balance should fail", func(t *testing.T) {
-	// 	originalOriginAccountBalance := 1
-	// 	originalDestineAccountBalance := 0
+	t.Run("Create transfer without insufficient balance should fail", func(t *testing.T) {
+		originalOriginAccountBalance := 1
+		originalDestineAccountBalance := 0
 
-	// 	testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "06316417772", Secret: "s"}
-	// 	err := accountRepo.CreateAccount(context.Background(), &testAccount1)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to create test account1: %v", err)
-	// 	}
+		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "06316417772", Secret: "s"}
+		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
+		if err != nil {
+			t.Errorf("Failed to create test account1: %v", err)
+		}
 
-	// 	testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "70465273858", Secret: "s"}
-	// 	err = accountRepo.CreateAccount(context.Background(), &testAccount2)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to create test account2: %v", err)
-	// 		t.FailNow()
-	// 	}
+		testAccount2 := account.Account{Balance: originalDestineAccountBalance, Name: "Joana", CPF: "70465273858", Secret: "s"}
+		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
+		if err != nil {
+			t.Errorf("Failed to create test account2: %v", err)
+			t.FailNow()
+		}
 
-	// 	transferRequest := rest.CreateTransferRequest{OriginAccountID: testAccount1.ID, DestinationAccountID: testAccount2.ID, Amount: originalOriginAccountBalance + 1}
-	// 	resp, _ := client.CreateTransfer(authorizationToken, transferRequest)
+		transferRequest := &gen.CreateTransferRequest{OriginAccountId: int32(testAccount1.ID), DestinationAccountId: int32(testAccount2.ID), Amount: int32(originalOriginAccountBalance + 1)}
+		_, err = client.CreateTransfer(ctx, transferRequest)
 
-	// 	if resp.StatusCode != http.StatusBadRequest {
-	// 		t.Errorf("Transfer creation request response should be BAD REQUEST not %v", resp.Status)
-	// 	}
+		reqStatus, _ := status.FromError(err)
+		if reqStatus.Code() != codes.InvalidArgument {
+			t.Errorf("Transfer creation request response should be %v not %v", codes.InvalidArgument, reqStatus.Code())
+		}
 
-	// 	var transferResponse rest.ErrorResponse
-	// 	err = json.NewDecoder(resp.Body).Decode(&transferResponse)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to parse create request response: %v", err)
-	// 		t.FailNow()
-	// 	}
+		if reqStatus.Message() != transfer.ErrInsufficientFundsToMakeTransaction.Error() {
+			t.Errorf(
+				"Response message should be %v and not %v",
+				transfer.ErrInsufficientFundsToMakeTransaction.Error(),
+				reqStatus.Message(),
+			)
+		}
 
-	// 	if transferResponse.Message != transfer.ErrInsufficientFundsToMakeTransaction.Error() {
-	// 		t.Errorf(
-	// 			"Response message should be %v and not %v",
-	// 			transfer.ErrInsufficientFundsToMakeTransaction.Error(),
-	// 			transferResponse.Message,
-	// 		)
-	// 	}
+		updatedOriginAccount, err := accountRepo.GetAccount(context.Background(), testAccount1.ID)
+		if err != nil {
+			t.Errorf("Failed to retrieve updatedOriginAccount: %v", err)
+		}
+		updatedDestinationAccount, err := accountRepo.GetAccount(context.Background(), testAccount2.ID)
+		if err != nil {
+			t.Errorf("Failed to retrieve updatedDestinationAccount: %v", err)
+		}
 
-	// 	updatedOriginAccount, err := accountRepo.GetAccount(context.Background(), testAccount1.ID)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to retrieve updatedOriginAccount: %v", err)
-	// 	}
-	// 	updatedDestinationAccount, err := accountRepo.GetAccount(context.Background(), testAccount2.ID)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to retrieve updatedDestinationAccount: %v", err)
-	// 	}
+		if updatedOriginAccount.Balance != originalOriginAccountBalance {
+			t.Errorf("It was expected to origin account not to change")
+		}
+		if updatedDestinationAccount.Balance != originalDestineAccountBalance {
+			t.Errorf("It was expected to destination account not to change")
+		}
+	})
+	t.Run("Create transfer with non existing account(s) should fail", func(t *testing.T) {
+		transferRequest := &gen.CreateTransferRequest{OriginAccountId: 132, DestinationAccountId: 13212, Amount: 1}
+		_, err := client.CreateTransfer(ctx, transferRequest)
 
-	// 	if updatedOriginAccount.Balance != originalOriginAccountBalance {
-	// 		t.Errorf("It was expected to origin account not to change")
-	// 	}
-	// 	if updatedDestinationAccount.Balance != originalDestineAccountBalance {
-	// 		t.Errorf("It was expected to destination account not to change")
-	// 	}
-	// })
-	// t.Run("Create transfer with non existing account(s) should fail", func(t *testing.T) {
-	// 	transferRequest := rest.CreateTransferRequest{OriginAccountID: 132, DestinationAccountID: 13212, Amount: 1}
-	// 	resp, _ := client.CreateTransfer(authorizationToken, transferRequest)
+		reqStatus, _ := status.FromError(err)
+		if reqStatus.Code() != codes.InvalidArgument {
+			t.Errorf("Transfer creation request response should be %v not %v", codes.InvalidArgument, reqStatus.Code())
+		}
 
-	// 	if resp.StatusCode != http.StatusBadRequest {
-	// 		t.Errorf("Transfer creation request response should be BAD REQUEST not %v", resp.Status)
-	// 	}
+		if reqStatus.Message() != account.ErrAccountNotFound.Error() {
+			t.Errorf(
+				"Response message should be %v and not %v",
+				account.ErrAccountNotFound.Error(),
+				reqStatus.Message(),
+			)
+		}
+	})
+	t.Run("Create transfer with value lesser than zero should fail", func(t *testing.T) {
+		testAccount1 := account.Account{Name: "Maria", CPF: "34414381401", Secret: "s"}
+		err := accountRepo.CreateAccount(context.Background(), &testAccount1)
+		if err != nil {
+			t.Errorf("Failed to create test account1: %v", err)
+		}
 
-	// 	var transferResponse rest.ErrorResponse
-	// 	err := json.NewDecoder(resp.Body).Decode(&transferResponse)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to parse create request response: %v", err)
-	// 		t.FailNow()
-	// 	}
+		testAccount2 := account.Account{Name: "Joana", CPF: "42462747478", Secret: "s"}
+		err = accountRepo.CreateAccount(context.Background(), &testAccount2)
+		if err != nil {
+			t.Errorf("Failed to create test account2: %v", err)
+			t.FailNow()
+		}
 
-	// 	if transferResponse.Message != account.ErrAccountNotFound.Error() {
-	// 		t.Errorf(
-	// 			"Response message should be %v and not %v",
-	// 			account.ErrAccountNotFound.Error(),
-	// 			transferResponse.Message,
-	// 		)
-	// 	}
-	// })
-	// t.Run("Create transfer with value lesser than zero should fail", func(t *testing.T) {
-	// 	testAccount1 := account.Account{Name: "Maria", CPF: "34414381401", Secret: "s"}
-	// 	err := accountRepo.CreateAccount(context.Background(), &testAccount1)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to create test account1: %v", err)
-	// 	}
+		_, err = client.CreateTransfer(ctx, &gen.CreateTransferRequest{
+			OriginAccountId:      int32(testAccount1.ID),
+			DestinationAccountId: int32(testAccount2.ID),
+			Amount:               0,
+		})
 
-	// 	testAccount2 := account.Account{Name: "Joana", CPF: "42462747478", Secret: "s"}
-	// 	err = accountRepo.CreateAccount(context.Background(), &testAccount2)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to create test account2: %v", err)
-	// 		t.FailNow()
-	// 	}
+		reqStatus, _ := status.FromError(err)
+		if reqStatus.Code() != codes.InvalidArgument {
+			t.Errorf("Response status should be %v and not %v", codes.InvalidArgument, reqStatus.Code())
+		}
 
-	// 	resp, err := client.CreateTransfer(authorizationToken, rest.CreateTransferRequest{
-	// 		OriginAccountID:      testAccount1.ID,
-	// 		DestinationAccountID: testAccount2.ID,
-	// 		Amount:               0,
-	// 	})
-	// 	if err != nil {
-	// 		t.Errorf("Failed to make request: %v", err)
-	// 		t.FailNow()
-	// 	}
+		if reqStatus.Message() != transfer.ErrTransferAmountShouldBeGreatterThanZero.Error() {
+			t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferAmountShouldBeGreatterThanZero.Error(), reqStatus.Message())
+		}
+	})
+	t.Run("Should not be possible to transfer to your self", func(t *testing.T) {
+		testAccount := account.Account{Name: "Maria", CPF: "06268075730", Secret: "s"}
+		err := accountRepo.CreateAccount(context.Background(), &testAccount)
+		if err != nil {
+			t.Errorf("Failed to create test account1: %v", err)
+		}
 
-	// 	if resp.StatusCode != http.StatusBadRequest {
-	// 		t.Errorf("Response status should be BAD REQUEST and not %v", resp.Status)
-	// 	}
+		_, err = client.CreateTransfer(ctx, &gen.CreateTransferRequest{
+			OriginAccountId:      int32(testAccount.ID),
+			DestinationAccountId: int32(testAccount.ID),
+			Amount:               42,
+		})
 
-	// 	var respBody rest.ErrorResponse
-	// 	err = json.NewDecoder(resp.Body).Decode(&respBody)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to parse response body: %v", err)
-	// 		t.FailNow()
-	// 	}
+		reqStatus, _ := status.FromError(err)
+		if reqStatus.Code() != codes.InvalidArgument {
+			t.Errorf("Response status should be %v and not %v", codes.InvalidArgument, reqStatus.Code())
+		}
 
-	// 	if respBody.Message != transfer.ErrTransferAmountShouldBeGreatterThanZero.Error() {
-	// 		t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferAmountShouldBeGreatterThanZero.Error(), respBody.Message)
-	// 	}
-	// })
-	// t.Run("Should not be possible to transfer to your self", func(t *testing.T) {
-	// 	testAccount := account.Account{Name: "Maria", CPF: "06268075730", Secret: "s"}
-	// 	err := accountRepo.CreateAccount(context.Background(), &testAccount)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to create test account1: %v", err)
-	// 	}
-
-	// 	resp, err := client.CreateTransfer(authorizationToken, rest.CreateTransferRequest{
-	// 		OriginAccountID:      testAccount.ID,
-	// 		DestinationAccountID: testAccount.ID,
-	// 		Amount:               42,
-	// 	})
-	// 	if err != nil {
-	// 		t.Errorf("Failed to make request: %v", err)
-	// 		t.FailNow()
-	// 	}
-
-	// 	if resp.StatusCode != http.StatusBadRequest {
-	// 		t.Errorf("Response status should be BAD REQUEST and not %v", resp.Status)
-	// 	}
-
-	// 	var respBody rest.ErrorResponse
-	// 	err = json.NewDecoder(resp.Body).Decode(&respBody)
-	// 	if err != nil {
-	// 		t.Errorf("Failed to parse response body: %v", err)
-	// 		t.FailNow()
-	// 	}
-
-	// 	if respBody.Message != transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent.Error() {
-	// 		t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent.Error(), respBody.Message)
-	// 	}
-	// })
+		if reqStatus.Message() != transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent.Error() {
+			t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent.Error(), reqStatus.Message())
+		}
+	})
 }
