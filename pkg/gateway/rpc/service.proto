@@ -44,6 +44,12 @@ service PandaKiller {
             body: "*"
         };
     }
+
+    rpc ListTransfers(google.protobuf.Empty) returns (GetTransfersListResponse) {
+        option (google.api.http) = {
+            get: "/transfers"
+        };
+    }
 }
 
 message CreateAccountRequest {
@@ -92,4 +98,16 @@ message CreateTransferRequest {
 
 message CreateTransferResponse {
     int32 id = 1;
+}
+
+message GetTransfersListResponse {
+    repeated GetTranferResponse transfers = 1; 
+}
+
+message GetTranferResponse {
+    int32 id = 1;
+    int32 amount = 2;
+    int32 origin_account_id = 3;
+    int32 destination_account_id = 4;
+    google.protobuf.Timestamp created_at = 5; 
 }

@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *Api) CreateAccount(ctx context.Context, accountReq *gen.CreateAccountRequest) (*gen.CreateAccountResponse, error) {
@@ -99,5 +100,34 @@ func (s *Api) CreateTransfer(ctx context.Context, request *gen.CreateTransferReq
 
 	return &gen.CreateTransferResponse{
 		Id: int32(createdTransfer.ID),
+	}, nil
+}
+
+func (s *Api) ListTransfers(ctx context.Context, in *emptypb.Empty) (*gen.GetTransfersListResponse, error) {
+	if ctx.Value(auth.SessionContextKey) == nil {
+		return nil, status.Error(codes.Unauthenticated, "")
+	}
+
+	session := ctx.Value(auth.SessionContextKey).(*auth.Claims)
+
+	transfers, err := s.TransferUsecase.ListTransfers(ctx, session.AccountID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "")
+	}
+
+	var response []*gen.GetTranferResponse
+	for _, t := range transfers {
+		r := &gen.GetTranferResponse{
+			Id:                   int32(t.ID),
+			Amount:               int32(t.Amount),
+			OriginAccountId:      int32(t.OriginAccount.ID),
+			DestinationAccountId: int32(t.DestinationAccount.ID),
+			CreatedAt:            timestamppb.New(t.CreatedAt),
+		}
+		response = append(response, r)
+	}
+
+	return &gen.GetTransfersListResponse{
+		Transfers: response,
 	}, nil
 }
