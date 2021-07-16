@@ -90,6 +90,11 @@ buf beta mod update
 - [x] Ver o lance de todo mundo referenciar as entities
 - [x] Swagger
 - [x] Usar gRPC nos endpoints já criados
-- [ ] Refatorar testes para usar tabela de casos
+- [ ] Mover .proto para o root
+- [ ] Documentar melhor os comandos (comandos de build, teste, run e etc)
+- [ ] Fazer testes manuais (no chi, swagger e no grpc)
+- [ ] Remover endponts rest do .proto que não funcionam
 - [ ] Por no readme "pontos interessantes"
+- [ ] Refatorar testes para usar tabela de casos
 - [ ] Implementar sistema de permissões
+- [ ] Docker test
