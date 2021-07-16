@@ -4,6 +4,21 @@ Um projeto para estudar diversas tecnologias, tecnicas e práticas utilizadas no
 ## Fonte do desafio
 [guilhermebr/desafio-tecnico-go.md](https://gist.github.com/guilhermebr/fb0d5896d76634703d385a4c68b730d8)
 
+## Práticas e tecnologias utilizadas
+- [Go 1.16](https://golang.org/)
+- [Docker](https://docs.docker.com/get-started/) e [Docker-compose](https://docs.docker.com/get-started/08_using_compose/)
+- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [Chi (REST API)](https://github.com/go-chi/chi)
+- [gRPC](https://grpc.io/docs/languages/go/quickstart/)
+- [gRPC Gateway](https://github.com/grpc-ecosystem/grpc-gateway)
+- [buf](https://docs.buf.build/)
+- [Swag](https://github.com/swaggo/swag)
+- [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt)
+- [jwt-go](https://github.com/dgrijalva/jwt-go)
+- [pgx](https://github.com/jackc/pgx)
+- [migrate](https://github.com/golang-migrate/migrate)
+- [logrus](https://github.com/sirupsen/logrus)
+
 ## Como executar (prod)
 **requisitos:**
 - docker-compose com suporte à versão 3.7
@@ -105,8 +120,8 @@ buf beta mod update
 - [x] Remover endponts rest do .proto que não funcionam
 - [x] Simplificar o middleware (respeitando clean arch)
 - [x] Authorization com Bearer para jwt
-- [ ] Por no readme "pontos interessantes"
-- [ ] Implementar os endpoints rest no grpc faltantes (os que usam auth) 
+- [x] Por no readme "pontos interessantes"
+- [ ] Implementar os endpoints rest no grpc faltantes (os que usam auth)
 - [ ] Refatorar testes para usar tabela de casos
 - [ ] Implementar sistema de permissões
 - [ ] Docker test
