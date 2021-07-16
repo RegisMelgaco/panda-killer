@@ -26,30 +26,15 @@ service PandaKiller {
 
     rpc GetAccountBalance (GetAccountBalanceRequest) returns (GetAccountBalanceResponse) {
         option (google.api.http) = {
-            post: "/accounts/{account_id}/balance"
-            body: "*"
+            get: "/accounts/{account_id}/balance"
         };
     }
 
-    rpc Login(LoginRequest) returns (LoginResponse) {
-        option (google.api.http) = {
-            post: "/auth/login"
-            body: "*"
-        };
-    }
+    rpc Login(LoginRequest) returns (LoginResponse);
 
-    rpc CreateTransfer(CreateTransferRequest) returns (CreateTransferResponse) {
-        option (google.api.http) = {
-            post: "/auth/login"
-            body: "*"
-        };
-    }
+    rpc CreateTransfer(CreateTransferRequest) returns (CreateTransferResponse);
 
-    rpc ListTransfers(google.protobuf.Empty) returns (GetTransfersListResponse) {
-        option (google.api.http) = {
-            get: "/transfers"
-        };
-    }
+    rpc ListTransfers(google.protobuf.Empty) returns (GetTransfersListResponse);
 }
 
 message CreateAccountRequest {
