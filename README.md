@@ -104,7 +104,7 @@ buf beta mod update
 - [x] Fazer testes manuais (no chi, swagger e no grpc)
 - [x] Remover endponts rest do .proto que não funcionam
 - [x] Simplificar o middleware (respeitando clean arch)
-- [ ] Authorization com Bearer para jwt
+- [x] Authorization com Bearer para jwt
 - [ ] Por no readme "pontos interessantes"
 - [ ] Implementar os endpoints rest no grpc faltantes (os que usam auth) 
 - [ ] Refatorar testes para usar tabela de casos

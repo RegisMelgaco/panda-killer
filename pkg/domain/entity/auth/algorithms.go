@@ -11,6 +11,6 @@ type PasswordHashingAlgorithms interface {
 }
 
 type SessionTokenAlgorithms interface {
-	GenerateSessionToken(*account.Account) (string, error)
+	GenerateAuthorizationString(*account.Account) (string, error)
 	GetClaims(token string) (*Claims, error)
 }

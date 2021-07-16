@@ -6,6 +6,7 @@ import (
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/auth"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -13,7 +14,7 @@ import (
 
 type SessionTokenAlgorithmsImpl struct{}
 
-func (a SessionTokenAlgorithmsImpl) GenerateSessionToken(sessionAccount *account.Account) (string, error) {
+func (a SessionTokenAlgorithmsImpl) GenerateAuthorizationString(sessionAccount *account.Account) (string, error) {
 	accessSecret, err := config.GetAccessSecret()
 	if err != nil {
 		return "", err
@@ -29,10 +30,16 @@ func (a SessionTokenAlgorithmsImpl) GenerateSessionToken(sessionAccount *account
 		return "", err
 	}
 
-	return signedTokenString, nil
+	return "Bearer " + signedTokenString, nil
 }
 
-func (a SessionTokenAlgorithmsImpl) GetClaims(token string) (*auth.Claims, error) {
+func (a SessionTokenAlgorithmsImpl) GetClaims(authentication string) (*auth.Claims, error) {
+	s := strings.Split(authentication, " ")
+	authenticationMethod, token := s[0], s[1]
+	if strings.ToLower(authenticationMethod) != "bearer" {
+		return nil, ErrUnsupportedAuthenticationMethod
+	}
+
 	t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrUnexpectedSigningMethod

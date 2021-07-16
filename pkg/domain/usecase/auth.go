@@ -41,7 +41,7 @@ func (u AuthUsecase) Login(ctx context.Context, cpf, password string) (authoriza
 		return "", auth.ErrInvalidCredentials
 	}
 
-	authorizationHeader, err = u.sessionAlgo.GenerateSessionToken(userAccount)
+	authorizationHeader, err = u.sessionAlgo.GenerateAuthorizationString(userAccount)
 	if err != nil {
 		entry.Errorf("Failed to login while creating a session token: %v", err)
 		return "", err
@@ -49,8 +49,8 @@ func (u AuthUsecase) Login(ctx context.Context, cpf, password string) (authoriza
 	return
 }
 
-func (u AuthUsecase) AddClaimsToContext(ctx context.Context, token string) (context.Context, error) {
-	claims, err := u.sessionAlgo.GetClaims(token)
+func (u AuthUsecase) AddClaimsToContext(ctx context.Context, authentication string) (context.Context, error) {
+	claims, err := u.sessionAlgo.GetClaims(authentication)
 	if err != nil {
 		return ctx, err
 	}
