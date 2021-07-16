@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 )
@@ -31,7 +32,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	postgres.RunMigrations()
+	err = postgres.RunMigrations()
+	if err != nil && err != migrate.ErrNoChange {
+		panic(err)
+	}
 
 	accountRepo := repository.NewAccountRepo(conn)
 	transferRepo := repository.NewTransferRepo(conn)
