@@ -57,8 +57,6 @@ message CreateAccountRequest {
     string cpf = 2;
     string password = 3;
     int32 balance = 4;
-
-    string motherName = 5;
 }
 
 message CreateAccountResponse {

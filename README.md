@@ -10,8 +10,9 @@ Um projeto para estudar diversas tecnologias, tecnicas e práticas utilizadas no
 
 **variáveis de ambiente:**
 - DB_URL={{url de acesso para o postgres}}
-- REST_API_ADDRESS={{the desired address or port}}
-- ACCESS_SECRET={{the private key for encryption algorithms like JWT signature}}
+- REST_API_ADDRESS={{o endereço ou porta desejado para api rest (necessária para chi e grpc)}}
+- GRPC_API_ADDRESS={{o endereço ou porta desejado para grpc api}}
+- ACCESS_SECRET={{chave privada para encriptação de algoritmos como JWT}}
 
 **comando**
 ```bash
@@ -20,40 +21,48 @@ docker-compose up
 
 ## Como executar (dev)
 **requisitos:**
-- docker-compose com suporte à versão 3.7
 - go 1.16
-- a postgres instance
+- uma instancia do postgres (recomendo a do docker-compose)
+- build swagger para modo de debug
 
 **variáveis de ambiente:**
 - DB_URL={{url de acesso para o postgres}}
-- REST_API_ADDRESS={{the desired address or port for the rest api}}
-- GRPC_API_ADDRESS={{the desired address or port for the grpc api}}
-- ACCESS_SECRET={{the private key for encryption algorithms like JWT signature}}
+- REST_API_ADDRESS={{o endereço ou porta desejado para api rest (necessária para chi e grpc)}}
+- GRPC_API_ADDRESS={{o endereço ou porta desejado para grpc api}}
+- ACCESS_SECRET={{chave privada para encriptação de algoritmos como JWT}}
 - MIGRATIONS_FOLDER_URL={{path to the migrations folder inside the project (the dockerfile contains a example)}}
+- DEBUG_MODE={{TRUE para habilitar o swagger}}
 
-**comando**
+**executar (chi)**
+
 ```bash
-go run cmd/api/main.go
+go run cmd/chiApi/main.go
+```
+
+**executar (gRPC)**
+```bash
+go run cmd/grpcApi/main.go
 ```
 
 **testes**
 ```bash
-go test ./...
+go test -p 1 ./...
 ```
+__obs:__ testes end to end precisam ser executados sequencialmente
 
-**Gerar documentação Swagger**
+## Desenvolvimento
+
+**Gerar documentação Swagger (chi)**
 
 requisito: Swag CLI (github.com/swaggo/swag)
 
 ```bash
-swag i -g cmd/api/main.go -o swagger/
+swag i -g cmd/chiApi/main.go -o swagger/
 ```
 
 **Build gRPC code**
 ```bash
-protoc --go_out=. --go_opt=paths=import \
-    --go-grpc_out=. --go-grpc_opt=paths=import \
-    pkg/gateway/grpc/service.proto
+buf generate
 ```
 
 **Update buf dependencies**
@@ -94,7 +103,9 @@ buf beta mod update
 - [ ] Documentar melhor os comandos (comandos de build, teste, run e etc)
 - [ ] Fazer testes manuais (no chi, swagger e no grpc)
 - [ ] Remover endponts rest do .proto que não funcionam
+- [ ] Authorization com Bearer para jwt
 - [ ] Por no readme "pontos interessantes"
 - [ ] Refatorar testes para usar tabela de casos
 - [ ] Implementar sistema de permissões
 - [ ] Docker test
+- [ ] [Mage](https://magefile.org/)
