@@ -1,0 +1,233 @@
+_type: export
+__export_format: 4
+__export_date: 2021-07-16T14:30:29.003Z
+__export_source: insomnia.desktop.app:v2021.4.1
+resources:
+  - _id: req_fc87db7466a74bdaacdc3dbd6cbb827d
+    parentId: fld_78629ce6394346bfaa6effcf6d2e17dd
+    modified: 1626445472962
+    created: 1626445449175
+    url: http://localhost:8080/transfers/
+    name: List transfers
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - id: pair_6012c2a2ba92418d9ef727f46ca7eafb
+        name: Authorization
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo2LCJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MjY0NDYxMzl9.H3FzyQw6x59jA5Hj888wfiLvm_qmgnkVmPxvYMZ-O7o
+        description: ""
+    authentication: {}
+    metaSortKey: -1626445449175
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_78629ce6394346bfaa6effcf6d2e17dd
+    parentId: wrk_bed3f20922fe4f8bae4aa97079036d41
+    modified: 1626445317028
+    created: 1626445317028
+    name: Transfer
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1626445317028
+    _type: request_group
+  - _id: wrk_bed3f20922fe4f8bae4aa97079036d41
+    parentId: null
+    modified: 1626187899393
+    created: 1626187899393
+    name: panda-killer
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_a68948422cab4dd6b222b8d39a7fca91
+    parentId: fld_78629ce6394346bfaa6effcf6d2e17dd
+    modified: 1626445434060
+    created: 1626445325896
+    url: http://localhost:8080/transfers/
+    name: Create transfer
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"origin_account_id": 6,
+        	"destination_account_id": 1,
+        	"amount": 5
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_4aa09ffcf64a4fe99066a24916fbf3f1
+      - id: pair_66976fef1b3048dd8493be3b93306a88
+        name: Authorization
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo2LCJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MjY0NDYxMzl9.H3FzyQw6x59jA5Hj888wfiLvm_qmgnkVmPxvYMZ-O7o
+        description: ""
+    authentication: {}
+    metaSortKey: -1626445325896
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_e2d0df98edc7402d8e656e424783bf27
+    parentId: fld_e47a35c2956049b580828fad1b705fea
+    modified: 1626445238755
+    created: 1626445196802
+    url: http://localhost:8080/auth/login
+    name: Login
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"cpf": "12345678951",
+        	"password": "123"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_680d6856d6d549ffad778ca2b4a1cf81
+    authentication: {}
+    metaSortKey: -1626445196802
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_e47a35c2956049b580828fad1b705fea
+    parentId: wrk_bed3f20922fe4f8bae4aa97079036d41
+    modified: 1626445191668
+    created: 1626445191668
+    name: Auth
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1626445191668
+    _type: request_group
+  - _id: req_e2e526bb1ddb4d7489c9ec1cad46a4d6
+    parentId: fld_e205b789cff44f46a0f7ab453a6a9b17
+    modified: 1626445171841
+    created: 1626445077280
+    url: http://localhost:8080/accounts/6/balance
+    name: Get Account Balance
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers: []
+    authentication: {}
+    metaSortKey: -1626445077280
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_e205b789cff44f46a0f7ab453a6a9b17
+    parentId: wrk_bed3f20922fe4f8bae4aa97079036d41
+    modified: 1626444965005
+    created: 1626444965005
+    name: Account
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1626444965005
+    _type: request_group
+  - _id: req_65529f39492840ef9575e3f7041c4f30
+    parentId: fld_e205b789cff44f46a0f7ab453a6a9b17
+    modified: 1626445037803
+    created: 1626445017788
+    url: http://localhost:8080/accounts/
+    name: List Accounts
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers: []
+    authentication: {}
+    metaSortKey: -1626445017788
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_b5e06749a23a4d1798bea5783183fe24
+    parentId: fld_e205b789cff44f46a0f7ab453a6a9b17
+    modified: 1626445163402
+    created: 1626187908355
+    url: http://localhost:8080/accounts/
+    name: Create account
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"name": "Juanitto",
+        	"cpf": "12345678951",
+        	"password": "123",
+        	"balance": 2000
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_8355e477e65e4cdb96596b0d7d8bcfb1
+    authentication: {}
+    metaSortKey: -1626444964955
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: env_3c6e2c78cbafa97dfb6cfa2b2d562d9e3f20080b
+    parentId: wrk_bed3f20922fe4f8bae4aa97079036d41
+    modified: 1626187899506
+    created: 1626187899506
+    name: Base Environment
+    data: {}
+    dataPropertyOrder: null
+    color: null
+    isPrivate: false
+    metaSortKey: 1626187899506
+    _type: environment
+  - _id: jar_3c6e2c78cbafa97dfb6cfa2b2d562d9e3f20080b
+    parentId: wrk_bed3f20922fe4f8bae4aa97079036d41
+    modified: 1626187899515
+    created: 1626187899515
+    name: Default Jar
+    cookies: []
+    _type: cookie_jar
+  - _id: spc_6d19f6a59a884bf79b553558341b062f
+    parentId: wrk_bed3f20922fe4f8bae4aa97079036d41
+    modified: 1626187899408
+    created: 1626187899408
+    fileName: panda-killer
+    contents: ""
+    contentType: yaml
+    _type: api_spec
