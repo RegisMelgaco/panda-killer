@@ -184,7 +184,7 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 // @Router /transfers [get]
 func ListTransfers(u *usecase.TransferUsecase) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		session := r.Context().Value(auth.SessionContextKey).(auth.Claims)
+		session := r.Context().Value(auth.SessionContextKey).(*auth.Claims)
 
 		transfers, err := u.ListTransfers(r.Context(), session.AccountID)
 		if err != nil {

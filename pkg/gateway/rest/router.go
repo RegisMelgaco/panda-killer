@@ -30,7 +30,7 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *useca
 	})
 
 	r.Route("/transfers", func(r chi.Router) {
-		r.Use(JwtAuthentication)
+		r.Use(JwtAuthentication(authUsecase))
 
 		r.Post("/", CreateTransfer(transferUsecase))
 		r.Get("/", ListTransfers(transferUsecase))
