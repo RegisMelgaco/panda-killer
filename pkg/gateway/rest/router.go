@@ -41,10 +41,14 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *useca
 	})
 
 	if config.GetDebugMode() {
+		restAddr, err := config.GetRestApiPort()
+		if err != nil {
+			panic(err)
+		}
 		r.Route("/", func(r chi.Router) {
 			r.Use(middleware.SetHeader("Content-type", ""))
 			r.Get("/swagger/*", httpSwagger.Handler(
-				httpSwagger.URL("http://localhost:8000/swagger/doc.json"), //The url pointing to API definition"
+				httpSwagger.URL(restAddr+"/swagger/doc.json"), //The url pointing to API definition"
 			))
 		})
 	}
