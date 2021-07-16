@@ -276,5 +276,5 @@ var PandaKiller_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "pkg/gateway/rpc/service.proto",
+	Metadata: "service.proto",
 }
