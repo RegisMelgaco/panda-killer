@@ -1,11 +1,11 @@
 _type: export
 __export_format: 4
-__export_date: 2021-07-16T14:30:29.003Z
+__export_date: 2021-07-16T17:44:24.645Z
 __export_source: insomnia.desktop.app:v2021.4.1
 resources:
   - _id: req_fc87db7466a74bdaacdc3dbd6cbb827d
     parentId: fld_78629ce6394346bfaa6effcf6d2e17dd
-    modified: 1626445472962
+    modified: 1626457427002
     created: 1626445449175
     url: http://localhost:8080/transfers/
     name: List transfers
@@ -16,7 +16,8 @@ resources:
     headers:
       - id: pair_6012c2a2ba92418d9ef727f46ca7eafb
         name: Authorization
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo2LCJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MjY0NDYxMzl9.H3FzyQw6x59jA5Hj888wfiLvm_qmgnkVmPxvYMZ-O7o
+        value: Bearer
+          eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo2LCJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MjY0NDYxMzl9.H3FzyQw6x59jA5Hj888wfiLvm_qmgnkVmPxvYMZ-O7o
         description: ""
     authentication: {}
     metaSortKey: -1626445449175
@@ -48,7 +49,7 @@ resources:
     _type: workspace
   - _id: req_a68948422cab4dd6b222b8d39a7fca91
     parentId: fld_78629ce6394346bfaa6effcf6d2e17dd
-    modified: 1626445434060
+    modified: 1626457422135
     created: 1626445325896
     url: http://localhost:8080/transfers/
     name: Create transfer
@@ -69,7 +70,8 @@ resources:
         id: pair_4aa09ffcf64a4fe99066a24916fbf3f1
       - id: pair_66976fef1b3048dd8493be3b93306a88
         name: Authorization
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo2LCJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MjY0NDYxMzl9.H3FzyQw6x59jA5Hj888wfiLvm_qmgnkVmPxvYMZ-O7o
+        value: Bearer
+          eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo2LCJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MjY0NDYxMzl9.H3FzyQw6x59jA5Hj888wfiLvm_qmgnkVmPxvYMZ-O7o
         description: ""
     authentication: {}
     metaSortKey: -1626445325896
@@ -154,9 +156,9 @@ resources:
     _type: request_group
   - _id: req_65529f39492840ef9575e3f7041c4f30
     parentId: fld_e205b789cff44f46a0f7ab453a6a9b17
-    modified: 1626445037803
+    modified: 1626448278667
     created: 1626445017788
-    url: http://localhost:8080/accounts/
+    url: http://localhost:8080/accounts
     name: List Accounts
     description: ""
     method: GET
@@ -175,9 +177,9 @@ resources:
     _type: request
   - _id: req_b5e06749a23a4d1798bea5783183fe24
     parentId: fld_e205b789cff44f46a0f7ab453a6a9b17
-    modified: 1626445163402
+    modified: 1626448270365
     created: 1626187908355
-    url: http://localhost:8080/accounts/
+    url: http://localhost:8080/accounts
     name: Create account
     description: ""
     method: POST
@@ -186,7 +188,7 @@ resources:
       text: |-
         {
         	"name": "Juanitto",
-        	"cpf": "12345678951",
+        	"cpf": "12345678952",
         	"password": "123",
         	"balance": 2000
         }
