@@ -1,0 +1,8 @@
+version: "1"
+packages:
+  - name: "sqlc"
+    path: "pkg/gateway/db/postgres/sqlc"
+    queries: "pkg/gateway/db/postgres/query.sql"
+    schema: "pkg/gateway/db/postgres/schema.sql"
+    engine: "postgresql"
+    driver: "pgx/v4"

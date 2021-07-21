@@ -85,6 +85,14 @@ buf generate
 buf beta mod update
 ```
 
+**Build sqlc code**
+
+requisito: sqlc CLI (https://github.com/kyleconroy/sqlc). May be necessary to build a newer version of the project.
+
+```bash
+sqlc generate
+```
+
 ## Tasks do Régis
 - [x] Criar os use cases dos endponts que já foram criados
 - [x] Teste pra list accounts
