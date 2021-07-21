@@ -123,11 +123,11 @@ buf beta mod update
 - [x] Por no readme "pontos interessantes"
 - [x] Arrumar migrations (valores monetários devem ser em int)
 - [x] Colocar tipos especificos de domínio (exp: cents, accountID)
-- [ ] Implementar os endpoints rest no grpc faltantes (os que usam auth)
-- [ ] Refatorar testes para usar tabela de casos
-- [ ] Implementar sistema de permissões
-- [ ] Docker test
-- [ ] [Mage](https://magefile.org/)
 - [ ] sqlc
+- [ ] Docker test
 - [ ] https://github.com/go-ozzo/ozzo-validation
 - [ ] Fazer testes unitários (por camada)
+- [ ] Refatorar testes para usar tabela de casos
+- [ ] Implementar os endpoints rest no grpc faltantes (os que usam auth)
+- [ ] Implementar sistema de permissões
+- [ ] [Mage](https://magefile.org/)
