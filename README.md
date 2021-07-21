@@ -121,8 +121,13 @@ buf beta mod update
 - [x] Simplificar o middleware (respeitando clean arch)
 - [x] Authorization com Bearer para jwt
 - [x] Por no readme "pontos interessantes"
+- [x] Arrumar migrations (valores monetários devem ser em int)
+- [ ] Colocar tipos especificos de domínio (exp: cents, accountID)
 - [ ] Implementar os endpoints rest no grpc faltantes (os que usam auth)
 - [ ] Refatorar testes para usar tabela de casos
 - [ ] Implementar sistema de permissões
 - [ ] Docker test
 - [ ] [Mage](https://magefile.org/)
+- [ ] sqlc
+- [ ] https://github.com/go-ozzo/ozzo-validation
+- [ ] Fazer testes unitários (por camada)

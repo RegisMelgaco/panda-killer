@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS account(
    cpf VARCHAR (11) NOT NULL UNIQUE,
    secret VARCHAR (255) NOT NULL
       CHECK(secret <> ''),
-   balance DOUBLE PRECISION NOT NULL,
+   balance INTEGER NOT NULL,
    created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
