@@ -8,6 +8,24 @@ import (
 	"time"
 )
 
+const getAccount = `-- name: GetAccount :one
+SELECT account_id, name, cpf, secret, balance, created_at FROM account WHERE account_id = $1 FETCH FIRST ROW ONLY
+`
+
+func (q *Queries) GetAccount(ctx context.Context, accountID int32) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccount, accountID)
+	var i Account
+	err := row.Scan(
+		&i.AccountID,
+		&i.Name,
+		&i.Cpf,
+		&i.Secret,
+		&i.Balance,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const insertAccount = `-- name: InsertAccount :one
 INSERT INTO account(name, cpf, secret, balance, created_at) values($1, $2, $3, $4, $5) RETURNING account_id
 `
@@ -31,4 +49,56 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (i
 	var account_id int32
 	err := row.Scan(&account_id)
 	return account_id, err
+}
+
+const listAccounts = `-- name: ListAccounts :many
+SELECT account_id, name, cpf, secret, balance, created_at FROM account
+`
+
+func (q *Queries) ListAccounts(ctx context.Context) ([]Account, error) {
+	rows, err := q.db.Query(ctx, listAccounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Account
+	for rows.Next() {
+		var i Account
+		if err := rows.Scan(
+			&i.AccountID,
+			&i.Name,
+			&i.Cpf,
+			&i.Secret,
+			&i.Balance,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectAccountByCPF = `-- name: SelectAccountByCPF :one
+SELECT account_id, name, cpf, secret, balance, created_at
+			FROM account
+			WHERE cpf = $1
+			FETCH FIRST ROW ONLY
+`
+
+func (q *Queries) SelectAccountByCPF(ctx context.Context, cpf string) (Account, error) {
+	row := q.db.QueryRow(ctx, selectAccountByCPF, cpf)
+	var i Account
+	err := row.Scan(
+		&i.AccountID,
+		&i.Name,
+		&i.Cpf,
+		&i.Secret,
+		&i.Balance,
+		&i.CreatedAt,
+	)
+	return i, err
 }

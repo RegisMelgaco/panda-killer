@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
+	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
 	_ "local/panda-killer/swagger"
@@ -37,7 +39,13 @@ func main() {
 		panic(err)
 	}
 
-	accountRepo := repository.NewAccountRepo(conn)
+	pgxConn, _ := postgres.OpenConnection()
+	defer pgxConn.Close(context.Background())
+	pgPool, _ := postgres.OpenConnectionPool()
+	defer pgPool.Close()
+	queries := sqlc.New(pgPool)
+
+	accountRepo := repository.NewAccountRepo(queries)
 	transferRepo := repository.NewTransferRepo(conn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}

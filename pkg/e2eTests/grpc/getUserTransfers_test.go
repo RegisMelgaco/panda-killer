@@ -6,6 +6,7 @@ import (
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
+	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rpc"
 	"local/panda-killer/pkg/gateway/rpc/gen"
@@ -26,9 +27,14 @@ func TestGetUserTransfers(t *testing.T) {
 	defer postgres.DownToMigrationZero()
 
 	pgxConn, _ := postgres.OpenConnection()
+	defer pgxConn.Close(context.Background())
+	pgPool, _ := postgres.OpenConnectionPool()
+	defer pgPool.Close()
+	queries := sqlc.New(pgPool)
+
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
-	accountRepo := repository.NewAccountRepo(pgxConn)
+	accountRepo := repository.NewAccountRepo(queries)
 	transferRepo := repository.NewTransferRepo(pgxConn)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	authUsecase := usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo)

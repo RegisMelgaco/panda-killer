@@ -4,34 +4,29 @@ import (
 	"context"
 	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/shared"
+	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 )
 
 type AccountRepoImpl struct {
-	conn *pgx.Conn
+	q *sqlc.Queries
 }
 
-func NewAccountRepo(conn *pgx.Conn) account.AccountRepo {
-	return AccountRepoImpl{conn}
+func NewAccountRepo(q *sqlc.Queries) account.AccountRepo {
+	return AccountRepoImpl{q}
 }
-
-const (
-	selectAccountByCPF = `
-		SELECT account_id, name, cpf, secret, balance, created_at
-			FROM account
-			WHERE cpf = $1
-			FETCH FIRST ROW ONLY;
-	`
-)
 
 func (r AccountRepoImpl) CreateAccount(ctx context.Context, a *account.Account) error {
-	err := r.conn.QueryRow(
-		ctx,
-		"INSERT INTO account(name, cpf, secret, balance, created_at) values($1, $2, $3, $4, $5) RETURNING account_id;",
-		a.Name, a.CPF, a.Secret, a.Balance, a.CreatedAt,
-	).Scan(&a.ID)
+	accountID, err := r.q.InsertAccount(ctx, sqlc.InsertAccountParams{
+		Name:      a.Name,
+		Cpf:       a.CPF,
+		Secret:    a.Secret,
+		Balance:   int32(a.Balance),
+		CreatedAt: a.CreatedAt,
+	})
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == "23505" {
@@ -42,50 +37,50 @@ func (r AccountRepoImpl) CreateAccount(ctx context.Context, a *account.Account) 
 		return err
 	}
 
+	a.ID = account.AccountID(accountID)
+
 	return nil
 }
 
 func (r AccountRepoImpl) GetAccounts(ctx context.Context) ([]account.Account, error) {
-	rows, err := r.conn.Query(
-		ctx,
-		"SELECT account_id, name, cpf, secret, balance, created_at FROM account;",
-	)
+	queriedAccounts, err := r.q.ListAccounts(ctx)
 	if err != nil {
 		return make([]account.Account, 0), err
 	}
 
-	defer rows.Close()
-
 	var accounts []account.Account
-	for rows.Next() {
-		var a account.Account
-		rows.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
-		accounts = append(accounts, a)
+	for _, a := range queriedAccounts {
+		accounts = append(accounts, *toEntity(a))
 	}
 
-	return accounts, rows.Err()
+	return accounts, nil
 }
 
 func (r AccountRepoImpl) GetAccount(ctx context.Context, accountID account.AccountID) (*account.Account, error) {
-	row := r.conn.QueryRow(ctx, "SELECT account_id, name, cpf, secret, balance, created_at FROM account WHERE account_id = $1 FETCH FIRST ROW ONLY;", accountID)
-
-	var a account.Account
-	err := row.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
+	a, err := r.q.GetAccount(ctx, int32(accountID))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return &account.Account{}, nil
 	}
 
-	return &a, nil
+	return toEntity(a), nil
 }
 
 func (r AccountRepoImpl) GetAccountByCPF(ctx context.Context, cpf string) (*account.Account, error) {
-	row := r.conn.QueryRow(ctx, selectAccountByCPF, cpf)
-
-	var a account.Account
-	err := row.Scan(&a.ID, &a.Name, &a.CPF, &a.Secret, &a.Balance, &a.CreatedAt)
+	a, err := r.q.SelectAccountByCPF(ctx, cpf)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return &account.Account{}, nil
 	}
 
-	return &a, nil
+	return toEntity(a), nil
+}
+
+func toEntity(a sqlc.Account) *account.Account {
+	return &account.Account{
+		ID:        account.AccountID(a.AccountID),
+		Name:      a.Name,
+		CPF:       a.Cpf,
+		Secret:    a.Secret,
+		Balance:   shared.Money(a.Balance),
+		CreatedAt: a.CreatedAt,
+	}
 }

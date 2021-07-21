@@ -6,6 +6,7 @@ import (
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
+	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rpc"
 	"local/panda-killer/pkg/gateway/rpc/gen"
@@ -21,8 +22,13 @@ func TestCreateAccountGRPC(t *testing.T) {
 	postgres.RunMigrations()
 
 	pgxConn, _ := postgres.OpenConnection()
+	defer pgxConn.Close(context.Background())
+	pgPool, _ := postgres.OpenConnectionPool()
+	defer pgPool.Close()
+	queries := sqlc.New(pgPool)
+
+	accountRepo := repository.NewAccountRepo(queries)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
-	accountRepo := repository.NewAccountRepo(pgxConn)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 
 	s := &rpc.Api{

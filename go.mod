@@ -9,19 +9,15 @@ require (
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
-	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/jackc/pgconn v1.8.1
-	github.com/jackc/pgproto3/v2 v2.1.0 // indirect
-	github.com/jackc/pgx/v4 v4.11.0
-	github.com/lib/pq v1.10.2 // indirect
+	github.com/jackc/pgconn v1.9.0
+	github.com/jackc/pgx/v4 v4.12.0
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/swaggo/http-swagger v1.0.0
 	github.com/swaggo/swag v1.7.0
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e

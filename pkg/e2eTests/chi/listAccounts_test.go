@@ -8,6 +8,7 @@ import (
 	"local/panda-killer/pkg/e2eTests/chi/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
 	"local/panda-killer/pkg/gateway/db/postgres"
+	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
@@ -21,7 +22,12 @@ func TestListAccounts(t *testing.T) {
 		postgres.RunMigrations()
 
 		pgxConn, _ := postgres.OpenConnection()
-		accountRepo := repository.NewAccountRepo(pgxConn)
+		defer pgxConn.Close(context.Background())
+		pgPool, _ := postgres.OpenConnectionPool()
+		defer pgPool.Close()
+		queries := sqlc.New(pgPool)
+
+		accountRepo := repository.NewAccountRepo(queries)
 		transferRepo := repository.NewTransferRepo(pgxConn)
 		passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 		sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
