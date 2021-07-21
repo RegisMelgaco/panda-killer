@@ -67,7 +67,7 @@ func (a SessionTokenAlgorithmsImpl) GetClaims(authentication string) (*auth.Clai
 	}
 
 	claims := &auth.Claims{
-		AccountID:  int(accountID),
+		AccountID:  account.AccountID(accountID),
 		Authorized: mapClaims["authorized"].(bool),
 		Expiration: time.Unix(exp, 0),
 	}

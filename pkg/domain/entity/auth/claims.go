@@ -1,14 +1,17 @@
 package auth
 
-import "time"
+import (
+	"local/panda-killer/pkg/domain/entity/account"
+	"time"
+)
 
 type Claims struct {
 	Authorized bool
-	AccountID  int
+	AccountID  account.AccountID
 	Expiration time.Time
 }
 
-func NewClaims(accountID int) Claims {
+func NewClaims(accountID account.AccountID) Claims {
 	return Claims{
 		Authorized: true,
 		AccountID:  accountID,

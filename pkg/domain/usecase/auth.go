@@ -22,7 +22,7 @@ func NewAuthUsecase(accountRepo account.AccountRepo, sessionAlgo auth.SessionTok
 	}
 }
 
-func (u AuthUsecase) Login(ctx context.Context, cpf, password string) (authorizationHeader string, err error) {
+func (u AuthUsecase) Login(ctx context.Context, cpf, password string) (authorization string, err error) {
 	entry := logrus.WithFields(logrus.Fields{
 		"cpf": cpf,
 	})
@@ -41,7 +41,7 @@ func (u AuthUsecase) Login(ctx context.Context, cpf, password string) (authoriza
 		return "", auth.ErrInvalidCredentials
 	}
 
-	authorizationHeader, err = u.sessionAlgo.GenerateAuthorizationString(userAccount)
+	authorization, err = u.sessionAlgo.GenerateAuthorizationString(userAccount)
 	if err != nil {
 		entry.Errorf("Failed to login while creating a session token: %v", err)
 		return "", err
@@ -49,8 +49,8 @@ func (u AuthUsecase) Login(ctx context.Context, cpf, password string) (authoriza
 	return
 }
 
-func (u AuthUsecase) AddClaimsToContext(ctx context.Context, authentication string) (context.Context, error) {
-	claims, err := u.sessionAlgo.GetClaims(authentication)
+func (u AuthUsecase) AddClaimsToContext(ctx context.Context, authorization string) (context.Context, error) {
+	claims, err := u.sessionAlgo.GetClaims(authorization)
 	if err != nil {
 		return ctx, err
 	}

@@ -61,15 +61,15 @@ func (r TransferRepoImpl) CreateTransferAndUpdateAccountsBalances(ctx context.Co
 	return err
 }
 
-func (r TransferRepoImpl) GetTransfersCantainingAccount(ctx context.Context, accountID int) ([]*transfer.Transfer, error) {
+func (r TransferRepoImpl) GetTransfersCantainingAccount(ctx context.Context, accountID account.AccountID) ([]transfer.Transfer, error) {
 	rows, err := r.conn.Query(ctx, selectTransfersContaningAccountSql, accountID)
 	if err != nil {
-		return []*transfer.Transfer{}, err
+		return []transfer.Transfer{}, err
 	}
 
-	var transfers []*transfer.Transfer
+	var transfers []transfer.Transfer
 	for rows.Next() {
-		t := &transfer.Transfer{OriginAccount: &account.Account{}, DestinationAccount: &account.Account{}}
+		t := transfer.Transfer{OriginAccount: &account.Account{}, DestinationAccount: &account.Account{}}
 		// itable.transfer_id, itable.amount, itable.t_created_at, itable.account_id, itable.name, itable.cpf, itable.balance, itable.a_created_at, a.account_id, a.name, a.cpf, a.balance, a.created_at
 		err = rows.Scan(
 			&t.ID,
@@ -87,7 +87,7 @@ func (r TransferRepoImpl) GetTransfersCantainingAccount(ctx context.Context, acc
 			&t.DestinationAccount.CreatedAt,
 		)
 		if err != nil {
-			return []*transfer.Transfer{}, err
+			return []transfer.Transfer{}, err
 		}
 		transfers = append(transfers, t)
 	}

@@ -1,10 +1,13 @@
 package account
 
-import "time"
+import (
+	"local/panda-killer/pkg/domain/entity/shared"
+	"time"
+)
 
 type Account struct {
-	ID                int
-	Balance           int
+	ID                AccountID
+	Balance           shared.Money
 	Name, CPF, Secret string
 	CreatedAt         time.Time
 }
@@ -20,12 +23,12 @@ func checkAccountFieldsValidity(a *Account) error {
 	return nil
 }
 
-func CreateNewAccount(balance int, name, cpf, secret string) (*Account, error) {
+func CreateNewAccount(balance shared.Money, name, cpf, secret string) (*Account, error) {
 	a := &Account{
 		Balance:   balance,
 		Name:      name,
 		CPF:       cpf,
-		Secret:    string(secret),
+		Secret:    secret,
 		CreatedAt: time.Now(),
 	}
 
@@ -37,7 +40,7 @@ func CreateNewAccount(balance int, name, cpf, secret string) (*Account, error) {
 	return a, nil
 }
 
-func NewAccount(id, balance int, name, cpf, secret string, createdAt time.Time) *Account {
+func NewAccount(id AccountID, balance shared.Money, name, cpf, secret string, createdAt time.Time) *Account {
 	return &Account{
 		ID:        id,
 		Balance:   balance,

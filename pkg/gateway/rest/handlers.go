@@ -5,6 +5,7 @@ import (
 	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/auth"
+	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"net/http"
@@ -38,7 +39,7 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 			return
 		}
 
-		createdAccount, err := usecase.CreateAccount(r.Context(), requestBody.Balance, requestBody.Name, requestBody.CPF, requestBody.Password)
+		createdAccount, err := usecase.CreateAccount(r.Context(), shared.Money(requestBody.Balance), requestBody.Name, requestBody.CPF, requestBody.Password)
 		if errors.Is(err, account.ErrAccountCPFShouldHaveLength11) ||
 			errors.Is(err, account.ErrAccountNameIsObligatory) ||
 			errors.Is(err, account.ErrAccountCPFShouldBeUnique) {
@@ -53,7 +54,11 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(CreatedAccountResponse{createdAccount.ID})
+		json.NewEncoder(w).Encode(
+			CreatedAccountResponse{
+				ID: createdAccount.ID,
+			},
+		)
 	}
 }
 
@@ -108,7 +113,7 @@ func GetAccountBalance(usecase *usecase.AccountUsecase) http.HandlerFunc {
 			return
 		}
 
-		balance, err := usecase.GetBalance(r.Context(), accountID)
+		balance, err := usecase.GetBalance(r.Context(), account.AccountID(accountID))
 		if errors.Is(err, account.ErrAccountNotFound) {
 			rw.WriteHeader(http.StatusNotFound)
 			return
@@ -148,9 +153,9 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 
 		createdTransfer, err := transferUsecase.CreateTransfer(
 			r.Context(),
-			body.OriginAccountID,
-			body.DestinationAccountID,
-			body.Amount,
+			account.AccountID(body.OriginAccountID),
+			account.AccountID(body.DestinationAccountID),
+			shared.Money(body.Amount),
 		)
 		if errors.Is(err, transfer.ErrInsufficientFundsToMakeTransaction) ||
 			errors.Is(err, transfer.ErrTransferAmountShouldBeGreatterThanZero) ||
@@ -184,9 +189,9 @@ func CreateTransfer(transferUsecase *usecase.TransferUsecase) http.HandlerFunc {
 // @Router /transfers [get]
 func ListTransfers(u *usecase.TransferUsecase) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		session := r.Context().Value(auth.SessionContextKey).(*auth.Claims)
+		claims := r.Context().Value(auth.SessionContextKey).(*auth.Claims)
 
-		transfers, err := u.ListTransfers(r.Context(), session.AccountID)
+		transfers, err := u.ListTransfers(r.Context(), claims.AccountID)
 		if err != nil {
 			rw.WriteHeader(http.StatusInternalServerError)
 			return

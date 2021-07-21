@@ -3,6 +3,7 @@ package e2etest
 import (
 	"context"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -110,8 +111,8 @@ func TestCreateTransfer(t *testing.T) {
 	})
 
 	t.Run("Create transfer without insufficient balance should fail", func(t *testing.T) {
-		originalOriginAccountBalance := 1
-		originalDestineAccountBalance := 0
+		var originalOriginAccountBalance shared.Money = 1
+		var originalDestineAccountBalance shared.Money = 0
 
 		testAccount1 := account.Account{Balance: originalOriginAccountBalance, Name: "Maria", CPF: "06316417772", Secret: "s"}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount1)

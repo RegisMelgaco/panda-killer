@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/chi/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -72,7 +73,7 @@ func TestCreateAccount(t *testing.T) {
 
 		persistedAccount := persistedAccounts[len(persistedAccounts)-1]
 
-		if testAccount.Balance != persistedAccount.Balance ||
+		if shared.Money(testAccount.Balance) != persistedAccount.Balance ||
 			testAccount.CPF != persistedAccount.CPF ||
 			testAccount.Name != persistedAccount.Name {
 			t.Errorf("Persisted data doesn't match with request data: request = %v, persisted = %v", persistedAccount, testAccount)

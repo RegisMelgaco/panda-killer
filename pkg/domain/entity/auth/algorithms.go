@@ -5,9 +5,9 @@ import (
 )
 
 type PasswordHashingAlgorithms interface {
-	GenerateSecretFromPassword(string) (string, error)
+	GenerateSecretFromPassword(secret string) (password string, err error)
 	// first string argument is secret and second is the password
-	CheckSecretAndPassword(string, string) error
+	CheckSecretAndPassword(secret string, password string) error
 }
 
 type SessionTokenAlgorithms interface {

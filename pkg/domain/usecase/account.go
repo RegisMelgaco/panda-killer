@@ -4,6 +4,7 @@ import (
 	"context"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/auth"
+	"local/panda-killer/pkg/domain/entity/shared"
 
 	"github.com/sirupsen/logrus"
 )
@@ -20,7 +21,7 @@ func NewAccountUsecase(accountRepo account.AccountRepo, securityAlgo auth.Passwo
 	}
 }
 
-func (u AccountUsecase) GetAccounts(ctx context.Context) ([]*account.Account, error) {
+func (u AccountUsecase) GetAccounts(ctx context.Context) ([]account.Account, error) {
 	accounts, err := u.repo.GetAccounts(ctx)
 	if err != nil {
 		logrus.Errorf("Get accounts failed with internal error: %v", err)
@@ -32,7 +33,7 @@ func (u AccountUsecase) GetAccounts(ctx context.Context) ([]*account.Account, er
 	return accounts, err
 }
 
-func (u AccountUsecase) CreateAccount(ctx context.Context, balance int, name string, cpf string, password string) (*account.Account, error) {
+func (u AccountUsecase) CreateAccount(ctx context.Context, balance shared.Money, name string, cpf string, password string) (*account.Account, error) {
 	entry := logrus.WithFields(logrus.Fields{
 		"balance": balance, "name": name, "cpf": cpf,
 	})
@@ -59,7 +60,7 @@ func (u AccountUsecase) CreateAccount(ctx context.Context, balance int, name str
 	return newAccount, err
 }
 
-func (u AccountUsecase) GetBalance(ctx context.Context, accountID int) (int, error) {
+func (u AccountUsecase) GetBalance(ctx context.Context, accountID account.AccountID) (shared.Money, error) {
 	entry := logrus.WithField("accountID", accountID)
 
 	a, err := u.repo.GetAccount(ctx, accountID)

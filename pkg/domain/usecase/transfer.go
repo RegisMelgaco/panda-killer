@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"sync"
 
@@ -14,7 +15,7 @@ type TransferUsecase struct {
 	accountRepo  account.AccountRepo
 
 	mux            *sync.Mutex
-	accountMutexes map[int]*sync.Mutex
+	accountMutexes map[account.AccountID]*sync.Mutex
 }
 
 func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.AccountRepo) *TransferUsecase {
@@ -23,15 +24,15 @@ func NewTransferUsecase(transferRepo transfer.TransferRepo, accountRepo account.
 		accountRepo:  accountRepo,
 
 		mux:            &sync.Mutex{},
-		accountMutexes: make(map[int]*sync.Mutex),
+		accountMutexes: make(map[account.AccountID]*sync.Mutex),
 	}
 }
 
-func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
+func (u TransferUsecase) CreateTransfer(ctx context.Context, originAccountID, destinationAccountID account.AccountID, amount shared.Money) (*transfer.Transfer, error) {
 	return u.handleCreateTransferParallelism(ctx, originAccountID, destinationAccountID, amount)
 }
 
-func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
+func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, originAccountID, destinationAccountID account.AccountID, amount shared.Money) (*transfer.Transfer, error) {
 	if originAccountID == destinationAccountID {
 		return &transfer.Transfer{}, transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent
 	}
@@ -55,7 +56,7 @@ func (u TransferUsecase) handleCreateTransferParallelism(ctx context.Context, or
 
 	return t, err
 }
-func (u TransferUsecase) getAccountMutexOrCreate(accountID int) *sync.Mutex {
+func (u TransferUsecase) getAccountMutexOrCreate(accountID account.AccountID) *sync.Mutex {
 	accountMutex, ok := u.accountMutexes[accountID]
 	if !ok {
 		accountMutex = &sync.Mutex{}
@@ -64,7 +65,7 @@ func (u TransferUsecase) getAccountMutexOrCreate(accountID int) *sync.Mutex {
 	return accountMutex
 }
 
-func (u TransferUsecase) handleCreateTransferBussLogic(ctx context.Context, originAccountID, destinationAccountID, amount int) (*transfer.Transfer, error) {
+func (u TransferUsecase) handleCreateTransferBussLogic(ctx context.Context, originAccountID, destinationAccountID account.AccountID, amount shared.Money) (*transfer.Transfer, error) {
 	entry := logrus.WithFields(logrus.Fields{
 		"originAccountID":      originAccountID,
 		"destinationAccountID": destinationAccountID,
@@ -104,13 +105,13 @@ func (u TransferUsecase) handleCreateTransferBussLogic(ctx context.Context, orig
 	return newTransfer, nil
 }
 
-func (u TransferUsecase) ListTransfers(ctx context.Context, loggedAccountID int) ([]*transfer.Transfer, error) {
+func (u TransferUsecase) ListTransfers(ctx context.Context, loggedAccountID account.AccountID) ([]transfer.Transfer, error) {
 	entry := logrus.WithField("accountID", loggedAccountID)
 
 	transfers, err := u.transferRepo.GetTransfersCantainingAccount(ctx, loggedAccountID)
 	if err != nil {
 		entry.Errorf("Failed to list transfer while trying to load stored transfers: %v", err)
-		return []*transfer.Transfer{}, nil
+		return []transfer.Transfer{}, nil
 	}
 
 	return transfers, nil

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/auth"
+	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/gateway/rpc/gen"
 
@@ -17,7 +18,7 @@ import (
 
 func (s *Api) CreateAccount(ctx context.Context, accountReq *gen.CreateAccountRequest) (*gen.CreateAccountResponse, error) {
 	createdAccount, err := s.AccountUsecase.CreateAccount(
-		ctx, int(accountReq.Balance), accountReq.Name, accountReq.Cpf, accountReq.Password,
+		ctx, shared.Money(accountReq.Balance), accountReq.Name, accountReq.Cpf, accountReq.Password,
 	)
 
 	if errors.Is(err, account.ErrAccountCPFShouldHaveLength11) ||
@@ -34,7 +35,7 @@ func (s *Api) CreateAccount(ctx context.Context, accountReq *gen.CreateAccountRe
 }
 
 func (s *Api) GetAccountBalance(ctx context.Context, request *gen.GetAccountBalanceRequest) (*gen.GetAccountBalanceResponse, error) {
-	balance, err := s.AccountUsecase.GetBalance(ctx, int(request.AccountId))
+	balance, err := s.AccountUsecase.GetBalance(ctx, account.AccountID(request.AccountId))
 	if errors.Is(err, account.ErrAccountNotFound) {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -84,9 +85,9 @@ func (s *Api) CreateTransfer(ctx context.Context, request *gen.CreateTransferReq
 
 	createdTransfer, err := s.TransferUsecase.CreateTransfer(
 		ctx,
-		int(request.OriginAccountId),
-		int(request.DestinationAccountId),
-		int(request.Amount),
+		account.AccountID(request.OriginAccountId),
+		account.AccountID(request.DestinationAccountId),
+		shared.Money(request.Amount),
 	)
 	if errors.Is(err, transfer.ErrInsufficientFundsToMakeTransaction) ||
 		errors.Is(err, transfer.ErrTransferAmountShouldBeGreatterThanZero) ||

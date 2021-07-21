@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/chi/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -33,7 +34,7 @@ func TestGetAccountBalance(t *testing.T) {
 	client := requests.Client{Host: ts.URL}
 
 	t.Run("Get account balance with success should retrive it's balance", func(t *testing.T) {
-		expectedBalance := 42
+		var expectedBalance shared.Money = 42
 		testAccount := account.Account{Name: "João", CPF: "34222086827", Secret: "s", Balance: expectedBalance}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount)
 		if err != nil {

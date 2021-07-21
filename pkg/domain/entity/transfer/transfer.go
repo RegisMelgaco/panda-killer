@@ -2,17 +2,18 @@ package transfer
 
 import (
 	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/shared"
 	"time"
 )
 
 type Transfer struct {
-	ID                                int
+	ID                                TransferID
 	OriginAccount, DestinationAccount *account.Account
-	Amount                            int
+	Amount                            shared.Money
 	CreatedAt                         time.Time
 }
 
-func NewTransfer(originAccount, destinationAccount *account.Account, amount int) (*Transfer, error) {
+func NewTransfer(originAccount, destinationAccount *account.Account, amount shared.Money) (*Transfer, error) {
 	if originAccount.ID == destinationAccount.ID {
 		return &Transfer{}, ErrTransferOriginAndDestinationNeedToBeDiffrent
 	}
@@ -28,7 +29,7 @@ func NewTransfer(originAccount, destinationAccount *account.Account, amount int)
 	return &Transfer{
 		OriginAccount:      originAccount,
 		DestinationAccount: destinationAccount,
-		Amount:             amount,
+		Amount:             shared.Money(amount),
 		CreatedAt:          time.Now(),
 	}, nil
 }

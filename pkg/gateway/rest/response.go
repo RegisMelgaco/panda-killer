@@ -1,9 +1,14 @@
 package rest
 
-import "time"
+import (
+	"local/panda-killer/pkg/domain/entity/account"
+	"local/panda-killer/pkg/domain/entity/shared"
+	"local/panda-killer/pkg/domain/entity/transfer"
+	"time"
+)
 
 type AccountBalanceResponse struct {
-	Balance int `json:"balance"`
+	Balance shared.Money `json:"balance"`
 }
 
 type ErrorResponse struct {
@@ -11,23 +16,23 @@ type ErrorResponse struct {
 }
 
 type CreatedAccountResponse struct {
-	ID int `json:"id"`
+	ID account.AccountID `json:"id"`
 }
 
 type GetAccountResponse struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	CPF  string `json:"cpf"`
+	ID   account.AccountID `json:"id"`
+	Name string            `json:"name"`
+	CPF  string            `json:"cpf"`
 }
 
 type CreateTransferResponse struct {
-	ID int `json:"id"`
+	ID transfer.TransferID `json:"id"`
 }
 
 type GetTransferResponse struct {
-	ID                   int       `json:"id"`
-	Amount               int       `json:"amount"`
-	OriginAccountID      int       `json:"origin_account_id"`
-	DestinationAccountID int       `json:"destination_account_id"`
-	CreatedAt            time.Time `json:"created_at"`
+	ID                   transfer.TransferID `json:"id"`
+	Amount               shared.Money        `json:"amount"`
+	OriginAccountID      account.AccountID   `json:"origin_account_id"`
+	DestinationAccountID account.AccountID   `json:"destination_account_id"`
+	CreatedAt            time.Time           `json:"created_at"`
 }
