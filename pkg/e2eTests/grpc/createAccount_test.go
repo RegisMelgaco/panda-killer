@@ -2,6 +2,7 @@ package e2etest
 
 import (
 	"context"
+	"fmt"
 	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
@@ -14,17 +15,59 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v4"
+	"github.com/ory/dockertest/v3"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func TestCreateAccountGRPC(t *testing.T) {
 	ctx := context.Background()
-	env := config.EnvVariablesProviderImpl{}
+	var env config.EnvVariablesProvider = config.EnvVariablesProviderImpl{}
+
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		t.Errorf("Could not connect to docker: %s", err)
+		t.Fail()
+	}
+
+	dbName := t.Name()
+	resource, err := pool.Run("postgres", "13.3", []string{"POSTGRES_PASSWORD=secret", "POSTGRES_DB=" + dbName})
+	if err != nil {
+		t.Errorf("Could not start resource: %s", err)
+		t.Fail()
+	}
+
+	fmt.Println(resource.GetPort("5432/tcp"))
+
+	env = env.SetTestDBUrl(
+		fmt.Sprintf(
+			"postgres://postgres:postgres@localhost:%s/%s?user=postgres&password=secret&sslmode=disable",
+			resource.GetPort("5432/tcp"),
+			dbName,
+		),
+	)
+
+	var pgConn *pgx.Conn
+	if err = pool.Retry(func() error {
+		pgConn, err = postgres.OpenConnection(env)
+		if err != nil {
+			return err
+		}
+		return pgConn.Ping(ctx)
+	}); err != nil {
+		t.Errorf("Could not connect to docker: %s", err)
+	}
+	defer pgConn.Close(ctx)
+
+	defer func() {
+		if err = pool.Purge(resource); err != nil {
+			t.Errorf("Could not purge resource: %s", err)
+		}
+	}()
+
 	postgres.RunMigrations(env)
 
-	pgxConn, _ := postgres.OpenConnection(env)
-	defer pgxConn.Close(context.Background())
 	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)

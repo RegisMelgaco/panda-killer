@@ -32,9 +32,12 @@ type EnvVariablesProvider interface {
 	GetGRPCApiPort() (string, error)
 	GetAccessSecret() (string, error)
 	GetDebugMode() bool
+	SetTestDBUrl(string) EnvVariablesProvider
 }
 
-type EnvVariablesProviderImpl struct{}
+type EnvVariablesProviderImpl struct {
+	testDBURl string
+}
 
 func getEnvVariable(variableKey, errorMessage string) (string, error) {
 	envVariable, isEnvVariableSet := os.LookupEnv(variableKey)
@@ -45,6 +48,9 @@ func getEnvVariable(variableKey, errorMessage string) (string, error) {
 }
 
 func (m EnvVariablesProviderImpl) GetDBUrl() (string, error) {
+	if len(m.testDBURl) > 0 {
+		return m.testDBURl, nil
+	}
 	return getEnvVariable(dbUrlEnvKey, dbEnvNotSetMessage)
 }
 
@@ -70,4 +76,9 @@ func (m EnvVariablesProviderImpl) GetDebugMode() bool {
 		return false
 	}
 	return strings.ToLower(envVariable) == "true"
+}
+
+func (m EnvVariablesProviderImpl) SetTestDBUrl(url string) EnvVariablesProvider {
+	m.testDBURl = url
+	return m
 }
