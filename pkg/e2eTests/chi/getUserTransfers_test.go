@@ -3,6 +3,7 @@ package e2etest
 import (
 	"context"
 	"encoding/json"
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/chi/requests"
@@ -19,20 +20,23 @@ import (
 
 func TestGetUserTransfers(t *testing.T) {
 	ctx := context.Background()
-	postgres.RunMigrations()
+	env := config.EnvVariablesProviderImpl{}
 
-	pgxConn, _ := postgres.OpenConnection()
+	postgres.RunMigrations(env)
+
+	pgxConn, _ := postgres.OpenConnection(env)
 	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool()
+	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
 	accountRepo := repository.NewAccountRepo(queries)
 	transferRepo := repository.NewTransferRepo(pgxConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
-	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	router := rest.CreateRouter(
+		env,
 		accountUsecase,
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
 		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
@@ -161,5 +165,5 @@ func TestGetUserTransfers(t *testing.T) {
 		}
 	})
 
-	postgres.DownToMigrationZero()
+	postgres.DownToMigrationZero(env)
 }

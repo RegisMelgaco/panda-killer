@@ -30,32 +30,35 @@ import (
 func main() {
 	log.Info("Server is starting ...")
 
-	conn, err := waitPostgres()
+	env := config.EnvVariablesProviderImpl{}
+
+	conn, err := waitPostgres(env)
 	if err != nil {
 		panic(err)
 	}
-	err = postgres.RunMigrations()
+	err = postgres.RunMigrations(env)
 	if err != nil && err != migrate.ErrNoChange {
 		panic(err)
 	}
 
-	pgxConn, _ := postgres.OpenConnection()
+	pgxConn, _ := postgres.OpenConnection(env)
 	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool()
+	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
 	accountRepo := repository.NewAccountRepo(queries)
 	transferRepo := repository.NewTransferRepo(conn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
-	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
 	router := rest.CreateRouter(
+		env,
 		usecase.NewAccountUsecase(accountRepo, passAlgo),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
 		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
 	)
 
-	port, err := config.GetRestApiPort()
+	port, err := env.GetRestApiPort()
 	if err != nil {
 		panic(err)
 	}
@@ -65,9 +68,9 @@ func main() {
 	log.Fatal(err)
 }
 
-func waitPostgres() (*pgx.Conn, error) {
+func waitPostgres(env config.EnvVariablesProvider) (*pgx.Conn, error) {
 	for i := 0; i < 3; i++ {
-		conn, err := postgres.OpenConnection()
+		conn, err := postgres.OpenConnection(env)
 		if err == nil {
 			return conn, nil
 		}

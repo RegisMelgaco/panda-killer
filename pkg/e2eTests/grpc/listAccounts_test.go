@@ -2,6 +2,7 @@ package e2etest
 
 import (
 	"context"
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -20,11 +21,14 @@ import (
 
 func TestListAccounts(t *testing.T) {
 	ctx := context.Background()
-	postgres.RunMigrations()
+	env := config.EnvVariablesProviderImpl{}
 
-	pgxConn, _ := postgres.OpenConnection()
+	postgres.RunMigrations(env)
+	defer postgres.DownToMigrationZero(env)
+
+	pgxConn, _ := postgres.OpenConnection(env)
 	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool()
+	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
@@ -60,6 +64,4 @@ func TestListAccounts(t *testing.T) {
 			t.Errorf("Expected accountList and testAccountsAsRequest to be equals: reqAccounts=%v testAccountsAsRequest=%v", accountList, testAccountsAsRequest.Accounts)
 		}
 	})
-
-	postgres.DownToMigrationZero()
 }

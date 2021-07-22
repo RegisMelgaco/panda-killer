@@ -11,7 +11,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *usecase.TransferUsecase, authUsecase *usecase.AuthUsecase) http.Handler {
+func CreateRouter(env config.EnvVariablesProvider, accountUsecase *usecase.AccountUsecase, transferUsecase *usecase.TransferUsecase, authUsecase *usecase.AuthUsecase) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -40,8 +40,8 @@ func CreateRouter(accountUsecase *usecase.AccountUsecase, transferUsecase *useca
 		r.Post("/login", Login(authUsecase))
 	})
 
-	if config.GetDebugMode() {
-		restAddr, err := config.GetRestApiPort()
+	if env.GetDebugMode() {
+		restAddr, err := env.GetRestApiPort()
 		if err != nil {
 			panic(err)
 		}

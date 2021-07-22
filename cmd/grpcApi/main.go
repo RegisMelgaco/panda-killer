@@ -25,30 +25,32 @@ import (
 func main() {
 	log.Info("Server is starting ...")
 
-	pgConn, err := waitPostgres()
+	env := config.EnvVariablesProviderImpl{}
+
+	pgConn, err := waitPostgres(env)
 	if err != nil {
 		panic(err)
 	}
 	defer pgConn.Close(context.Background())
-	postgres.RunMigrations()
+	postgres.RunMigrations(env)
 
-	pgPool, _ := postgres.OpenConnectionPool()
+	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
 	accountRepo := repository.NewAccountRepo(queries)
 	transferRepo := repository.NewTransferRepo(pgConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
-	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	authUsecase := usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo)
 	transferUsecase := usecase.NewTransferUsecase(transferRepo, accountRepo)
 
-	grpcPort, err := config.GetGRPCApiPort()
+	grpcPort, err := env.GetGRPCApiPort()
 	if err != nil {
 		panic(err)
 	}
-	restPort, err := config.GetRestApiPort()
+	restPort, err := env.GetRestApiPort()
 	if err != nil {
 		panic(err)
 	}
@@ -96,9 +98,9 @@ func main() {
 	log.Fatalln(gwServer.ListenAndServe())
 }
 
-func waitPostgres() (*pgx.Conn, error) {
+func waitPostgres(env config.EnvVariablesProvider) (*pgx.Conn, error) {
 	for i := 0; i < 3; i++ {
-		conn, err := postgres.OpenConnection()
+		conn, err := postgres.OpenConnection(env)
 		if err == nil {
 			return conn, nil
 		}

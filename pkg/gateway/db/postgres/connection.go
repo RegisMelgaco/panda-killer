@@ -8,8 +8,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func OpenConnection() (*pgx.Conn, error) {
-	dbUrl, err := config.GetDBUrl()
+func OpenConnection(env config.EnvVariablesProvider) (*pgx.Conn, error) {
+	dbUrl, err := env.GetDBUrl()
 	if err != nil {
 		panic(err)
 	}
@@ -17,8 +17,8 @@ func OpenConnection() (*pgx.Conn, error) {
 	return pgx.Connect(context.Background(), dbUrl)
 }
 
-func OpenConnectionPool() (*pgxpool.Pool, error) {
-	dbUrl, err := config.GetDBUrl()
+func OpenConnectionPool(env config.EnvVariablesProvider) (*pgxpool.Pool, error) {
+	dbUrl, err := env.GetDBUrl()
 	if err != nil {
 		panic(err)
 	}

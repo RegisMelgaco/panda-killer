@@ -9,13 +9,13 @@ import (
 	"local/panda-killer/cmd/config"
 )
 
-func RunMigrations() error {
-	dbUrl, err := config.GetDBUrl()
+func RunMigrations(env config.EnvVariablesProvider) error {
+	dbUrl, err := env.GetDBUrl()
 	if err != nil {
 		panic(err)
 	}
 
-	migrationsUrl, err := config.GetMigrationsFolderUrl()
+	migrationsUrl, err := env.GetMigrationsFolderUrl()
 	if err != nil {
 		panic(err)
 	}
@@ -37,13 +37,13 @@ func RunMigrations() error {
 	return nil
 }
 
-func DownToMigrationZero() {
-	dbUrl, err := config.GetDBUrl()
+func DownToMigrationZero(env config.EnvVariablesProvider) {
+	dbUrl, err := env.GetDBUrl()
 	if err != nil {
 		panic(err)
 	}
 
-	migrationsUrl, err := config.GetMigrationsFolderUrl()
+	migrationsUrl, err := env.GetMigrationsFolderUrl()
 	if err != nil {
 		panic(err)
 	}

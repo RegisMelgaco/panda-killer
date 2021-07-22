@@ -2,6 +2,7 @@ package e2etest
 
 import (
 	"context"
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/chi/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -15,12 +16,13 @@ import (
 )
 
 func TestLogin(t *testing.T) {
+	env := config.EnvVariablesProviderImpl{}
 	ctx := context.Background()
-	postgres.RunMigrations()
+	postgres.RunMigrations(env)
 
-	pgxConn, _ := postgres.OpenConnection()
+	pgxConn, _ := postgres.OpenConnection(env)
 	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool()
+	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
@@ -28,8 +30,9 @@ func TestLogin(t *testing.T) {
 	transferRepo := repository.NewTransferRepo(pgxConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
-	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
 	router := rest.CreateRouter(
+		env,
 		usecase.NewAccountUsecase(accountRepo, passAlgo),
 		usecase.NewTransferUsecase(transferRepo, accountRepo),
 		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
@@ -101,5 +104,5 @@ func TestLogin(t *testing.T) {
 		}
 	})
 
-	postgres.DownToMigrationZero()
+	postgres.DownToMigrationZero(env)
 }

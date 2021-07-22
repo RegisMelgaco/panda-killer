@@ -2,6 +2,7 @@ package e2etest
 
 import (
 	"context"
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -19,11 +20,12 @@ import (
 
 func TestCreateAccountGRPC(t *testing.T) {
 	ctx := context.Background()
-	postgres.RunMigrations()
+	env := config.EnvVariablesProviderImpl{}
+	postgres.RunMigrations(env)
 
-	pgxConn, _ := postgres.OpenConnection()
+	pgxConn, _ := postgres.OpenConnection(env)
 	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool()
+	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
@@ -125,5 +127,6 @@ func TestCreateAccountGRPC(t *testing.T) {
 			t.Errorf("Received message diffrent from expected: expected=%v actual=%v", account.ErrAccountCPFShouldHaveLength11.Error(), respStatus.Message())
 		}
 	})
-	postgres.DownToMigrationZero()
+
+	postgres.DownToMigrationZero(env)
 }

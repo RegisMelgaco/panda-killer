@@ -2,6 +2,7 @@ package e2etest
 
 import (
 	"context"
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/entity/transfer"
@@ -21,18 +22,19 @@ import (
 
 func TestCreateTransfer(t *testing.T) {
 	ctx := context.Background()
+	env := config.EnvVariablesProviderImpl{}
 
-	postgres.RunMigrations()
-	defer postgres.DownToMigrationZero()
+	postgres.RunMigrations(env)
+	defer postgres.DownToMigrationZero(env)
 
-	pgxConn, _ := postgres.OpenConnection()
+	pgxConn, _ := postgres.OpenConnection(env)
 	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool()
+	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
-	sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
+	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
 	accountRepo := repository.NewAccountRepo(queries)
 	transferRepo := repository.NewTransferRepo(pgxConn)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)

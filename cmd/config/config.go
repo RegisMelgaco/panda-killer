@@ -25,6 +25,17 @@ const (
 	debugModeEnvKey = "DEBUG_MODE"
 )
 
+type EnvVariablesProvider interface {
+	GetDBUrl() (string, error)
+	GetMigrationsFolderUrl() (string, error)
+	GetRestApiPort() (string, error)
+	GetGRPCApiPort() (string, error)
+	GetAccessSecret() (string, error)
+	GetDebugMode() bool
+}
+
+type EnvVariablesProviderImpl struct{}
+
 func getEnvVariable(variableKey, errorMessage string) (string, error) {
 	envVariable, isEnvVariableSet := os.LookupEnv(variableKey)
 	if !isEnvVariableSet {
@@ -33,27 +44,27 @@ func getEnvVariable(variableKey, errorMessage string) (string, error) {
 	return envVariable, nil
 }
 
-func GetDBUrl() (string, error) {
+func (m EnvVariablesProviderImpl) GetDBUrl() (string, error) {
 	return getEnvVariable(dbUrlEnvKey, dbEnvNotSetMessage)
 }
 
-func GetMigrationsFolderUrl() (string, error) {
+func (m EnvVariablesProviderImpl) GetMigrationsFolderUrl() (string, error) {
 	return getEnvVariable(migrationsFolderUrlEnvKey, migrationsFolderUrlEnvNotSetMessage)
 }
 
-func GetRestApiPort() (string, error) {
+func (m EnvVariablesProviderImpl) GetRestApiPort() (string, error) {
 	return getEnvVariable(grpcApiPortEnvKey, grpcApiPortEnvNotSetMessage)
 }
 
-func GetGRPCApiPort() (string, error) {
+func (m EnvVariablesProviderImpl) GetGRPCApiPort() (string, error) {
 	return getEnvVariable(restApiPortEnvKey, restApiPortEnvNotSetMessage)
 }
 
-func GetAccessSecret() (string, error) {
+func (m EnvVariablesProviderImpl) GetAccessSecret() (string, error) {
 	return getEnvVariable(accessSecretEnvKey, accessSecretEnvNotSetMessage)
 }
 
-func GetDebugMode() bool {
+func (m EnvVariablesProviderImpl) GetDebugMode() bool {
 	envVariable, isEnvVariableSet := os.LookupEnv(debugModeEnvKey)
 	if !isEnvVariableSet {
 		return false

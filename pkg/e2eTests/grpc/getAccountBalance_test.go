@@ -2,6 +2,7 @@ package e2etest
 
 import (
 	"context"
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/usecase"
@@ -19,11 +20,12 @@ import (
 
 func TestGetAccountBalance(t *testing.T) {
 	ctx := context.Background()
-	postgres.RunMigrations()
+	env := config.EnvVariablesProviderImpl{}
+	postgres.RunMigrations(env)
 
-	pgxConn, _ := postgres.OpenConnection()
+	pgxConn, _ := postgres.OpenConnection(env)
 	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool()
+	pgPool, _ := postgres.OpenConnectionPool(env)
 	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
@@ -67,5 +69,5 @@ func TestGetAccountBalance(t *testing.T) {
 		}
 	})
 
-	postgres.DownToMigrationZero()
+	postgres.DownToMigrationZero(env)
 }

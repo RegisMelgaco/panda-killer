@@ -131,7 +131,7 @@ sqlc generate
 - [x] Por no readme "pontos interessantes"
 - [x] Arrumar migrations (valores monetários devem ser em int)
 - [x] Colocar tipos especificos de domínio (exp: cents, accountID)
-- [ ] sqlc
+- [x] sqlc
 - [ ] Docker test
 - [ ] https://github.com/go-ozzo/ozzo-validation
 - [ ] Fazer testes unitários (por camada)

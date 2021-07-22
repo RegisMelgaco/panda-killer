@@ -12,10 +12,16 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-type SessionTokenAlgorithmsImpl struct{}
+type SessionTokenAlgorithmsImpl struct {
+	env config.EnvVariablesProvider
+}
+
+func NewSessionTokenAlgorithms(env config.EnvVariablesProvider) auth.SessionTokenAlgorithms {
+	return SessionTokenAlgorithmsImpl{env}
+}
 
 func (a SessionTokenAlgorithmsImpl) GenerateAuthorizationString(sessionAccount *account.Account) (string, error) {
-	accessSecret, err := config.GetAccessSecret()
+	accessSecret, err := a.env.GetAccessSecret()
 	if err != nil {
 		return "", err
 	}
@@ -44,7 +50,7 @@ func (a SessionTokenAlgorithmsImpl) GetClaims(authentication string) (*auth.Clai
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrUnexpectedSigningMethod
 		}
-		accessSecret, err := config.GetAccessSecret()
+		accessSecret, err := a.env.GetAccessSecret()
 		if err != nil {
 			return []byte{}, err
 		}

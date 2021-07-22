@@ -3,6 +3,7 @@ package e2etest
 import (
 	"context"
 	"encoding/json"
+	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/chi/requests"
@@ -18,28 +19,30 @@ import (
 )
 
 func TestListAccounts(t *testing.T) {
+	env := config.EnvVariablesProviderImpl{}
+	postgres.RunMigrations(env)
+
+	pgxConn, _ := postgres.OpenConnection(env)
+	defer pgxConn.Close(context.Background())
+	pgPool, _ := postgres.OpenConnectionPool(env)
+	defer pgPool.Close()
+	queries := sqlc.New(pgPool)
+
+	accountRepo := repository.NewAccountRepo(queries)
+	transferRepo := repository.NewTransferRepo(pgxConn)
+	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
+	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
+	router := rest.CreateRouter(
+		env,
+		usecase.NewAccountUsecase(accountRepo, passAlgo),
+		usecase.NewTransferUsecase(transferRepo, accountRepo),
+		usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
+	)
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	client := requests.Client{Host: ts.URL}
+
 	t.Run("List Accounts successfully should return persisted accounts", func(t *testing.T) {
-		postgres.RunMigrations()
-
-		pgxConn, _ := postgres.OpenConnection()
-		defer pgxConn.Close(context.Background())
-		pgPool, _ := postgres.OpenConnectionPool()
-		defer pgPool.Close()
-		queries := sqlc.New(pgPool)
-
-		accountRepo := repository.NewAccountRepo(queries)
-		transferRepo := repository.NewTransferRepo(pgxConn)
-		passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
-		sessionAlgo := algorithms.SessionTokenAlgorithmsImpl{}
-		router := rest.CreateRouter(
-			usecase.NewAccountUsecase(accountRepo, passAlgo),
-			usecase.NewTransferUsecase(transferRepo, accountRepo),
-			usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo),
-		)
-		ts := httptest.NewServer(router)
-		defer ts.Close()
-		client := requests.Client{Host: ts.URL}
-
 		testAccounts := []account.Account{{Name: "João", CPF: "60684316730", Secret: "s"}, {Name: "Maria", CPF: "47577807613", Secret: "s"}}
 		for i, a := range testAccounts {
 			accountRepo.CreateAccount(context.Background(), &a)
@@ -71,5 +74,5 @@ func TestListAccounts(t *testing.T) {
 		}
 	})
 
-	postgres.DownToMigrationZero()
+	postgres.DownToMigrationZero(env)
 }
