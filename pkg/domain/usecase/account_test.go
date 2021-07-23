@@ -11,13 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type accountRepoMock struct {
-	CreateAccount   func(context.Context, *account.Account) error
-	GetAccounts     func(context.Context) ([]account.Account, error)
-	GetAccount      func(context.Context, account.AccountID) (*account.Account, error)
-	GetAccountByCPF func(ctx context.Context, cpf string) (*account.Account, error)
-}
-
 func TestGetAccounts(t *testing.T) {
 	cases := []struct {
 		name        string
