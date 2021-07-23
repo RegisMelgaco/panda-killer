@@ -9,6 +9,7 @@ import (
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/gateway/rpc/gen"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,7 +17,25 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var (
+	cpfValidation  = validation.Length(11, 11).Error(account.ErrAccountCPFShouldHaveLength11.Error())
+	nameValidation = validation.Required.Error(account.ErrAccountNameIsObligatory.Error())
+)
+
+func ValidateCreateAccountRequest(a *gen.CreateAccountRequest) error {
+	return validation.ValidateStruct(
+		a,
+		validation.Field(&a.Name, nameValidation),
+		validation.Field(&a.Cpf, cpfValidation),
+	)
+}
+
 func (s *Api) CreateAccount(ctx context.Context, accountReq *gen.CreateAccountRequest) (*gen.CreateAccountResponse, error) {
+	err := ValidateCreateAccountRequest(accountReq)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
 	createdAccount, err := s.AccountUsecase.CreateAccount(
 		ctx, shared.Money(accountReq.Balance), accountReq.Name, accountReq.Cpf, accountReq.Password,
 	)

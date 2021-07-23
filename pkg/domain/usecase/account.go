@@ -44,7 +44,7 @@ func (u AccountUsecase) CreateAccount(ctx context.Context, balance shared.Money,
 		return &account.Account{}, err
 	}
 
-	newAccount, err := account.CreateNewAccount(balance, name, cpf, secret)
+	newAccount := account.CreateNewAccount(balance, name, cpf, secret)
 	if err != nil {
 		entry.Infof("Create account failed with domain error: %v", err)
 		return &account.Account{}, err

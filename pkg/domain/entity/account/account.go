@@ -12,32 +12,14 @@ type Account struct {
 	CreatedAt         time.Time
 }
 
-func checkAccountFieldsValidity(a *Account) error {
-	if len(a.Name) == 0 {
-		return ErrAccountNameIsObligatory
-	}
-	if len(a.CPF) != 11 {
-		return ErrAccountCPFShouldHaveLength11
-	}
-
-	return nil
-}
-
-func CreateNewAccount(balance shared.Money, name, cpf, secret string) (*Account, error) {
-	a := &Account{
+func CreateNewAccount(balance shared.Money, name, cpf, secret string) *Account {
+	return &Account{
 		Balance:   balance,
 		Name:      name,
 		CPF:       cpf,
 		Secret:    secret,
 		CreatedAt: time.Now(),
 	}
-
-	err := checkAccountFieldsValidity(a)
-	if err != nil {
-		return &Account{}, err
-	}
-
-	return a, nil
 }
 
 func NewAccount(id AccountID, balance shared.Money, name, cpf, secret string, createdAt time.Time) *Account {

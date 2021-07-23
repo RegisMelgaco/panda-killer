@@ -39,6 +39,12 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 			return
 		}
 
+		if err = requestBody.Validate(); err != nil {
+			log.Debugf("Request body failed validation: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(ErrorResponse{Message: err.Error()})
+		}
+
 		createdAccount, err := usecase.CreateAccount(r.Context(), shared.Money(requestBody.Balance), requestBody.Name, requestBody.CPF, requestBody.Password)
 		if errors.Is(err, account.ErrAccountCPFShouldHaveLength11) ||
 			errors.Is(err, account.ErrAccountNameIsObligatory) ||
