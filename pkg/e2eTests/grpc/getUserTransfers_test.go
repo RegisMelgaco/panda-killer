@@ -1,12 +1,12 @@
-package e2etest
+package e2etest_test
 
 import (
 	"context"
 	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
+	e2etest "local/panda-killer/pkg/e2eTests/grpc"
 	"local/panda-killer/pkg/gateway/algorithms"
-	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rpc"
@@ -22,22 +22,19 @@ import (
 )
 
 func TestGetUserTransfers(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
-	env := config.EnvVariablesProviderImpl{}
+	var env config.EnvVariablesProvider = config.EnvVariablesProviderImpl{}
 
-	postgres.RunMigrations(env)
-	defer postgres.DownToMigrationZero(env)
+	_, pgConn, pgPool := CreateNewTestDBAndEnv(t.Name())
 
-	pgxConn, _ := postgres.OpenConnection(env)
-	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool(env)
-	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
 	accountRepo := repository.NewAccountRepo(queries)
-	transferRepo := repository.NewTransferRepo(pgxConn)
+	transferRepo := repository.NewTransferRepo(pgConn)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	authUsecase := usecase.NewAuthUsecase(accountRepo, sessionAlgo, passAlgo)
 	transferUsecase := usecase.NewTransferUsecase(transferRepo, accountRepo)
@@ -48,13 +45,14 @@ func TestGetUserTransfers(t *testing.T) {
 		TransferUsecase: transferUsecase,
 	}
 
-	client, conn, err := StartServerAndGetClient(ctx, api)
+	client, conn, err := e2etest.StartServerAndGetClient(ctx, api)
 	if err != nil {
 		t.Errorf("Failed to start test server: %v", err)
 	}
 	defer conn.Close()
 
 	t.Run("Get user transfers with success should return list of transfers where the user is part.", func(t *testing.T) {
+
 		passord := ";)"
 		testUser1, err := accountUsecase.CreateAccount(ctx, 1, "João", "33228058166", passord)
 		if err != nil {

@@ -1,12 +1,10 @@
-package e2etest
+package e2etest_test
 
 import (
 	"context"
-	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
-	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rpc"
@@ -20,16 +18,12 @@ import (
 )
 
 func TestListAccounts(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
-	env := config.EnvVariablesProviderImpl{}
 
-	postgres.RunMigrations(env)
-	defer postgres.DownToMigrationZero(env)
+	_, _, pgPool := CreateNewTestDBAndEnv(t.Name())
 
-	pgxConn, _ := postgres.OpenConnection(env)
-	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool(env)
-	defer pgPool.Close()
 	queries := sqlc.New(pgPool)
 
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
@@ -39,6 +33,7 @@ func TestListAccounts(t *testing.T) {
 	s := &rpc.Api{AccountUsecase: accountUsecase}
 
 	t.Run("List Accounts successfully should return persisted accounts", func(t *testing.T) {
+
 		testAccounts := []account.Account{{Name: "João", CPF: "60684316730", Secret: "s"}, {Name: "Maria", CPF: "47577807613", Secret: "s"}}
 		for i, a := range testAccounts {
 			accountRepo.CreateAccount(context.Background(), &a)

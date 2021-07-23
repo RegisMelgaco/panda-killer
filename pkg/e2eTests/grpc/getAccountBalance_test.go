@@ -1,13 +1,11 @@
-package e2etest
+package e2etest_test
 
 import (
 	"context"
-	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
-	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rpc"
@@ -19,14 +17,12 @@ import (
 )
 
 func TestGetAccountBalance(t *testing.T) {
-	ctx := context.Background()
-	env := config.EnvVariablesProviderImpl{}
-	postgres.RunMigrations(env)
+	t.Parallel()
 
-	pgxConn, _ := postgres.OpenConnection(env)
-	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool(env)
-	defer pgPool.Close()
+	ctx := context.Background()
+
+	_, _, pgPool := CreateNewTestDBAndEnv(t.Name())
+
 	queries := sqlc.New(pgPool)
 
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
@@ -38,6 +34,7 @@ func TestGetAccountBalance(t *testing.T) {
 	}
 
 	t.Run("Get account balance with success should retrive it's balance", func(t *testing.T) {
+
 		var expectedBalance shared.Money = 42
 		testAccount := account.Account{Name: "João", CPF: "34222086827", Secret: "s", Balance: expectedBalance}
 		err := accountRepo.CreateAccount(context.Background(), &testAccount)
@@ -68,6 +65,4 @@ func TestGetAccountBalance(t *testing.T) {
 			t.Errorf("Expected header was %v and not %v", codes.NotFound, reqStatus.Code())
 		}
 	})
-
-	postgres.DownToMigrationZero(env)
 }

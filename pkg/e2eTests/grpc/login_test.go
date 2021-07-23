@@ -1,11 +1,9 @@
-package e2etest
+package e2etest_test
 
 import (
 	"context"
-	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
-	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rpc"
@@ -17,15 +15,12 @@ import (
 )
 
 func TestLogin(t *testing.T) {
-	ctx := context.Background()
-	env := config.EnvVariablesProviderImpl{}
-	postgres.RunMigrations(env)
-	defer postgres.DownToMigrationZero(env)
+	t.Parallel()
 
-	pgxConn, _ := postgres.OpenConnection(env)
-	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool(env)
-	defer pgPool.Close()
+	ctx := context.Background()
+
+	env, _, pgPool := CreateNewTestDBAndEnv(t.Name())
+
 	queries := sqlc.New(pgPool)
 
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
@@ -46,6 +41,7 @@ func TestLogin(t *testing.T) {
 	}
 
 	t.Run("Login with success should receive response with token", func(t *testing.T) {
+
 		resp, err := s.Login(ctx, &gen.LoginRequest{
 			Cpf:      correctCPF,
 			Password: correctPassword,

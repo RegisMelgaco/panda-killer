@@ -2,12 +2,9 @@ package e2etest_test
 
 import (
 	"context"
-	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
-	e2etest "local/panda-killer/pkg/e2eTests/grpc"
 	"local/panda-killer/pkg/gateway/algorithms"
-	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rpc"
@@ -20,14 +17,11 @@ import (
 )
 
 func TestCreateAccountGRPC(t *testing.T) {
-	ctx := context.Background()
-	var env config.EnvVariablesProvider = config.EnvVariablesProviderImpl{}
+	t.Parallel()
 
-	dockerPool, resource, env, pgConn, pgPool, err := e2etest.GetTestPgConn(ctx, env, t.Name())
-	if err != nil {
-		t.Errorf("Failed to get a test db: %v", err)
-	}
-	defer e2etest.EraseDBArtifacts(ctx, pgPool, pgConn, dockerPool, resource)
+	ctx := context.Background()
+
+	_, _, pgPool := CreateNewTestDBAndEnv(t.Name())
 
 	queries := sqlc.New(pgPool)
 
@@ -40,6 +34,7 @@ func TestCreateAccountGRPC(t *testing.T) {
 	}
 
 	t.Run("Creating account successfully should persist account", func(t *testing.T) {
+
 		testAccount := &gen.CreateAccountRequest{
 			Balance:  2,
 			Name:     "Marcelinho",
@@ -129,6 +124,4 @@ func TestCreateAccountGRPC(t *testing.T) {
 			t.Errorf("Received message diffrent from expected: expected=%v actual=%v", account.ErrAccountCPFShouldHaveLength11.Error(), respStatus.Message())
 		}
 	})
-
-	postgres.DownToMigrationZero(env)
 }
