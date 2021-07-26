@@ -140,6 +140,7 @@ sqlc generate
 - [ ] Testes unitários para handlers
 - [ ] [Mage](https://magefile.org/)
 - [ ] Fazer testes unitários (por camada)
+- [ ] Pesquisar Go generate
 - [ ] Refatorar testes para usar tabela de casos
 - [ ] Implementar os endpoints rest no grpc faltantes (os que usam auth)
 - [ ] Implementar sistema de permissões
