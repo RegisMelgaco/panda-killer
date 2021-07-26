@@ -3,8 +3,6 @@ package rest
 import (
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/shared"
-
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 type CreateAccountRequest struct {
@@ -12,19 +10,6 @@ type CreateAccountRequest struct {
 	Name     string       `json:"name"`
 	CPF      string       `json:"cpf" minLength:"11" maxLength:"11"`
 	Password string       `json:"password"`
-}
-
-var (
-	cpfValidation  = validation.Length(11, 11).Error(account.ErrAccountCPFShouldHaveLength11.Error())
-	nameValidation = validation.Required.Error(account.ErrAccountNameIsObligatory.Error())
-)
-
-func (a CreateAccountRequest) Validate() error {
-	return validation.ValidateStruct(
-		&a,
-		validation.Field(&a.Name, nameValidation),
-		validation.Field(&a.CPF, cpfValidation),
-	)
 }
 
 type CreateTransferRequest struct {

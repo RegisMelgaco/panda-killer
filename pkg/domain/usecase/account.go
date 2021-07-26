@@ -41,23 +41,23 @@ func (u AccountUsecase) CreateAccount(ctx context.Context, balance shared.Money,
 	secret, err := u.securityAlgo.GenerateSecretFromPassword(password)
 	if err != nil {
 		entry.Errorf("Failed to create account while genereting secret: %v", err)
-		return &account.Account{}, err
+		return nil, err
 	}
 
-	newAccount := account.CreateNewAccount(balance, name, cpf, secret)
+	newAccount, err := account.CreateNewAccount(balance, name, cpf, secret)
 	if err != nil {
 		entry.Infof("Create account failed with domain error: %v", err)
-		return &account.Account{}, err
+		return nil, err
 	}
 
 	err = u.repo.CreateAccount(ctx, newAccount)
 	if err != nil {
 		entry.Infof("Create account failed with internal error: %v", err)
-		return &account.Account{}, err
+		return nil, err
 	}
 
 	entry.Info("Created account with success")
-	return newAccount, err
+	return newAccount, nil
 }
 
 func (u AccountUsecase) GetBalance(ctx context.Context, accountID account.AccountID) (shared.Money, error) {

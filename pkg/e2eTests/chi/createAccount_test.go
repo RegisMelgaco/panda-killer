@@ -3,7 +3,6 @@ package e2etest
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/shared"
@@ -16,6 +15,7 @@ import (
 	"local/panda-killer/pkg/gateway/rest"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -153,9 +153,8 @@ func TestCreateAccount(t *testing.T) {
 			t.FailNow()
 		}
 
-		expectedMessage := fmt.Sprintf("cpf: %s.", account.ErrAccountCPFShouldHaveLength11.Error())
-		if errorResp.Message != expectedMessage {
-			t.Errorf("Received message diffrent from expected: expected=%v actual=%v", expectedMessage, errorResp.Message)
+		if !strings.Contains(errorResp.Message, account.ErrAccountCPFShouldHaveLength11.Error()) {
+			t.Errorf("Expected error message to contains '%v'. Received '%v'", account.ErrAccountCPFShouldHaveLength11.Error(), errorResp.Message)
 		}
 	})
 

@@ -134,8 +134,12 @@ sqlc generate
 - [x] sqlc
 - [x] Docker test
 - [x] https://github.com/go-ozzo/ozzo-validation
+- [x] Estudar validar input na camada entity ou usecase
+- [ ] Fazer demais testes unitários do usecase de account
+- [ ] Fazer testes unitários para account repo
+- [ ] Testes unitários para handlers
+- [ ] [Mage](https://magefile.org/)
 - [ ] Fazer testes unitários (por camada)
 - [ ] Refatorar testes para usar tabela de casos
 - [ ] Implementar os endpoints rest no grpc faltantes (os que usam auth)
 - [ ] Implementar sistema de permissões
-- [ ] [Mage](https://magefile.org/)

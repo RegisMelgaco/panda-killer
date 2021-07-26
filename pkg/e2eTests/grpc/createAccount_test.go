@@ -2,7 +2,6 @@ package e2etest_test
 
 import (
 	"context"
-	"fmt"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/gateway/algorithms"
@@ -10,6 +9,7 @@ import (
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rpc"
 	"local/panda-killer/pkg/gateway/rpc/gen"
+	"strings"
 	"testing"
 	"time"
 
@@ -121,9 +121,8 @@ func TestCreateAccountGRPC(t *testing.T) {
 			t.Errorf("Server should answer with %v: %v", codes.InvalidArgument, respStatus.Code())
 		}
 
-		expectedMessage := fmt.Sprintf("cpf: %s.", account.ErrAccountCPFShouldHaveLength11.Error())
-		if respStatus.Message() != expectedMessage {
-			t.Errorf("Received message diffrent from expected: expected=%v actual=%v", expectedMessage, respStatus.Message())
+		if !strings.Contains(respStatus.Message(), account.ErrAccountCPFShouldHaveLength11.Error()) {
+			t.Errorf("Expected error message to contains '%v'. Received '%v'", account.ErrAccountCPFShouldHaveLength11.Error(), respStatus.Message())
 		}
 	})
 }

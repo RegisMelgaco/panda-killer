@@ -10,6 +10,7 @@ import (
 	"local/panda-killer/pkg/domain/usecase"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
@@ -39,16 +40,11 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 			return
 		}
 
-		if err = requestBody.Validate(); err != nil {
-			log.Debugf("Request body failed validation: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(ErrorResponse{Message: err.Error()})
-		}
-
 		createdAccount, err := usecase.CreateAccount(r.Context(), shared.Money(requestBody.Balance), requestBody.Name, requestBody.CPF, requestBody.Password)
-		if errors.Is(err, account.ErrAccountCPFShouldHaveLength11) ||
-			errors.Is(err, account.ErrAccountNameIsObligatory) ||
-			errors.Is(err, account.ErrAccountCPFShouldBeUnique) {
+		if err != nil &&
+			(strings.Contains(err.Error(), account.ErrAccountCPFShouldBeUnique.Error()) ||
+				strings.Contains(err.Error(), account.ErrAccountCPFShouldHaveLength11.Error()) ||
+				strings.Contains(err.Error(), account.ErrAccountNameIsObligatory.Error())) {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(ErrorResponse{Message: err.Error()})
 			return
