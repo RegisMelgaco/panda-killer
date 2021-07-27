@@ -3,6 +3,7 @@ package usecase_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/usecase"
@@ -84,6 +85,7 @@ func TestCreateAccount(t *testing.T) {
 			return nil
 		},
 	}
+	unexpectedError := errors.New("Oh my god :O! Soo unexpected...")
 
 	cases := []struct {
 		testName string
@@ -127,6 +129,36 @@ func TestCreateAccount(t *testing.T) {
 			expected:                    nil,
 			expectedErr:                 validation.Errors{},
 			expectCallRepoCreateAccount: false,
+		},
+		{
+			testName: fmt.Sprintf("Create account with repeated cpf SHOULD retrive error %v", account.ErrAccountCPFShouldBeUnique),
+			repo: &account.AccountRepoMock{
+				CreateAccountFunc: func(contextMoqParam context.Context, a *account.Account) error {
+					return account.ErrAccountCPFShouldBeUnique
+				},
+			},
+			balance:                     42,
+			name:                        "Cristina",
+			cpf:                         "12345678901",
+			password:                    ";)",
+			expected:                    nil,
+			expectedErr:                 account.ErrAccountCPFShouldBeUnique,
+			expectCallRepoCreateAccount: true,
+		},
+		{
+			testName: "Create account with unexpected error from repo SHOULD retrive error",
+			repo: &account.AccountRepoMock{
+				CreateAccountFunc: func(contextMoqParam context.Context, account *account.Account) error {
+					return unexpectedError
+				},
+			},
+			balance:                     13,
+			name:                        "Clara",
+			cpf:                         "12345678901",
+			password:                    ";)",
+			expected:                    nil,
+			expectedErr:                 unexpectedError,
+			expectCallRepoCreateAccount: true,
 		},
 	}
 
