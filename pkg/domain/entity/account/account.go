@@ -27,12 +27,17 @@ func CreateNewAccount(balance shared.Money, name, cpf, secret string) (*Account,
 		Secret:    secret,
 		CreatedAt: time.Now(),
 	}
+
 	err := validation.ValidateStruct(
 		&a,
 		validation.Field(&a.Name, nameValidation),
 		validation.Field(&a.CPF, cpfValidation),
 	)
-	return &a, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &a, nil
 }
 
 func NewAccount(id AccountID, balance shared.Money, name, cpf, secret string, createdAt time.Time) *Account {
