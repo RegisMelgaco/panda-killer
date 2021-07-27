@@ -181,3 +181,51 @@ func TestCreateAccount(t *testing.T) {
 		})
 	}
 }
+
+func TestGetBalance(t *testing.T) {
+	// unexpectedError := errors.New("Oh my god :O! Soo unexpected...")
+	cases := []struct {
+		testName   string
+		mockedRepo *account.AccountRepoMock
+
+		accountID account.AccountID
+
+		expected    shared.Money
+		expectedErr error
+	}{
+		{
+			testName: "Get balance from exiting account with working repo SHOULD retrive balance",
+			mockedRepo: &account.AccountRepoMock{
+				GetAccountFunc: func(contextMoqParam context.Context, accountID account.AccountID) (*account.Account, error) {
+					return &account.Account{
+						Balance: 42,
+					}, nil
+				},
+			},
+			accountID:   1,
+			expected:    shared.Money(42),
+			expectedErr: nil,
+		},
+		// {
+		// 	testName: fmt.Sprintf("Get balance from nonexisting account and working repo SHOULD retrive error %v", account.ErrAccountNotFound),
+		// },
+		// {
+		// 	testName: "Get balance with repo with unexpected error SHOULD retrive error unexpected error",
+		// },
+	}
+
+	for _, c := range cases {
+		t.Run(c.testName, func(t *testing.T) {
+			t.Parallel()
+
+			uc := usecase.NewAccountUsecase(
+				c.mockedRepo, algorithms.PasswordHashingAlgorithmsImpl{},
+			)
+
+			actual, err := uc.GetBalance(context.Background(), c.accountID)
+
+			assert.Equal(t, c.expected, actual)
+			assert.Equal(t, c.expectedErr, err)
+		})
+	}
+}

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/auth"
 	"local/panda-killer/pkg/domain/entity/shared"
@@ -64,9 +65,9 @@ func (u AccountUsecase) GetBalance(ctx context.Context, accountID account.Accoun
 	entry := logrus.WithField("accountID", accountID)
 
 	a, err := u.repo.GetAccount(ctx, accountID)
-	if a.ID == 0 {
+	if errors.Is(err, account.ErrAccountNotFound) {
 		entry.Infof("Get balance failed with domain error: %v", err)
-		return 0, account.ErrAccountNotFound
+		return 0, err
 	}
 	if err != nil {
 		entry.Errorf("Get balance failed with internal error: %v", err)

@@ -59,7 +59,7 @@ func (r AccountRepoImpl) GetAccounts(ctx context.Context) ([]account.Account, er
 func (r AccountRepoImpl) GetAccount(ctx context.Context, accountID account.AccountID) (*account.Account, error) {
 	a, err := r.q.GetAccount(ctx, int32(accountID))
 	if errors.Is(err, pgx.ErrNoRows) {
-		return &account.Account{}, nil
+		return nil, account.ErrAccountNotFound
 	}
 
 	return toEntity(a), nil
