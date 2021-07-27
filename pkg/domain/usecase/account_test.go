@@ -183,7 +183,7 @@ func TestCreateAccount(t *testing.T) {
 }
 
 func TestGetBalance(t *testing.T) {
-	// unexpectedError := errors.New("Oh my god :O! Soo unexpected...")
+	unexpectedError := errors.New("Oh my god :O! Soo unexpected...")
 	cases := []struct {
 		testName   string
 		mockedRepo *account.AccountRepoMock
@@ -206,12 +206,28 @@ func TestGetBalance(t *testing.T) {
 			expected:    shared.Money(42),
 			expectedErr: nil,
 		},
-		// {
-		// 	testName: fmt.Sprintf("Get balance from nonexisting account and working repo SHOULD retrive error %v", account.ErrAccountNotFound),
-		// },
-		// {
-		// 	testName: "Get balance with repo with unexpected error SHOULD retrive error unexpected error",
-		// },
+		{
+			testName: fmt.Sprintf("Get balance from nonexisting account and working repo SHOULD retrive error %v", account.ErrAccountNotFound),
+			mockedRepo: &account.AccountRepoMock{
+				GetAccountFunc: func(contextMoqParam context.Context, accountID account.AccountID) (*account.Account, error) {
+					return nil, account.ErrAccountNotFound
+				},
+			},
+			accountID:   1,
+			expected:    shared.Money(0),
+			expectedErr: account.ErrAccountNotFound,
+		},
+		{
+			testName: "Get balance with repo with unexpected error SHOULD retrive error unexpected error",
+			mockedRepo: &account.AccountRepoMock{
+				GetAccountFunc: func(contextMoqParam context.Context, accountID account.AccountID) (*account.Account, error) {
+					return nil, unexpectedError
+				},
+			},
+			accountID:   1,
+			expected:    shared.Money(0),
+			expectedErr: unexpectedError,
+		},
 	}
 
 	for _, c := range cases {
