@@ -2,11 +2,9 @@ package e2etest
 
 import (
 	"context"
-	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/chi/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
-	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
@@ -16,18 +14,14 @@ import (
 )
 
 func TestLogin(t *testing.T) {
-	env := config.EnvVariablesProviderImpl{}
-	ctx := context.Background()
-	postgres.RunMigrations(env)
+	t.Parallel()
 
-	pgxConn, _ := postgres.OpenConnection(env)
-	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool(env)
-	defer pgPool.Close()
+	ctx := context.Background()
+	env, pgConn, pgPool := repository.CreateNewTestDBAndEnv(t.Name())
 	queries := sqlc.New(pgPool)
 
 	accountRepo := repository.NewAccountRepo(queries)
-	transferRepo := repository.NewTransferRepo(pgxConn)
+	transferRepo := repository.NewTransferRepo(pgConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
 	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
@@ -103,6 +97,4 @@ func TestLogin(t *testing.T) {
 			t.Error("Authorization header should be set.")
 		}
 	})
-
-	postgres.DownToMigrationZero(env)
 }

@@ -36,25 +36,3 @@ func RunMigrations(env config.EnvVariablesProvider) error {
 
 	return nil
 }
-
-func DownToMigrationZero(env config.EnvVariablesProvider) {
-	dbUrl, err := env.GetDBUrl()
-	if err != nil {
-		panic(err)
-	}
-
-	migrationsUrl, err := env.GetMigrationsFolderUrl()
-	if err != nil {
-		panic(err)
-	}
-
-	m, err := migrate.New(migrationsUrl, dbUrl)
-	if err != nil {
-		panic(err)
-	}
-
-	err = m.Down()
-	for err != nil {
-		err = m.Down()
-	}
-}

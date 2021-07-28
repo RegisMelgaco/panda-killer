@@ -3,14 +3,12 @@ package e2etest
 import (
 	"context"
 	"encoding/json"
-	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/shared"
 	"local/panda-killer/pkg/domain/entity/transfer"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/chi/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
-	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
@@ -20,18 +18,13 @@ import (
 )
 
 func TestCreateTransfer(t *testing.T) {
-	env := config.EnvVariablesProviderImpl{}
+	t.Parallel()
 
-	postgres.RunMigrations(env)
-
-	pgxConn, _ := postgres.OpenConnection(env)
-	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool(env)
-	defer pgPool.Close()
+	env, pgConn, pgPool := repository.CreateNewTestDBAndEnv(t.Name())
 	queries := sqlc.New(pgPool)
 
 	accountRepo := repository.NewAccountRepo(queries)
-	transferRepo := repository.NewTransferRepo(pgxConn)
+	transferRepo := repository.NewTransferRepo(pgConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo, passAlgo)
@@ -253,6 +246,4 @@ func TestCreateTransfer(t *testing.T) {
 			t.Errorf("Expected message in response was '%v' and not '%v'", transfer.ErrTransferOriginAndDestinationNeedToBeDiffrent.Error(), respBody.Message)
 		}
 	})
-
-	postgres.DownToMigrationZero(env)
 }

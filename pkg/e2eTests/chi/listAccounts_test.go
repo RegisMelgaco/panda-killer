@@ -3,12 +3,10 @@ package e2etest
 import (
 	"context"
 	"encoding/json"
-	"local/panda-killer/cmd/config"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/usecase"
 	"local/panda-killer/pkg/e2eTests/chi/requests"
 	"local/panda-killer/pkg/gateway/algorithms"
-	"local/panda-killer/pkg/gateway/db/postgres"
 	"local/panda-killer/pkg/gateway/db/postgres/sqlc"
 	"local/panda-killer/pkg/gateway/repository"
 	"local/panda-killer/pkg/gateway/rest"
@@ -19,17 +17,13 @@ import (
 )
 
 func TestListAccounts(t *testing.T) {
-	env := config.EnvVariablesProviderImpl{}
-	postgres.RunMigrations(env)
+	t.Parallel()
 
-	pgxConn, _ := postgres.OpenConnection(env)
-	defer pgxConn.Close(context.Background())
-	pgPool, _ := postgres.OpenConnectionPool(env)
-	defer pgPool.Close()
+	env, pgConn, pgPool := repository.CreateNewTestDBAndEnv(t.Name())
 	queries := sqlc.New(pgPool)
 
 	accountRepo := repository.NewAccountRepo(queries)
-	transferRepo := repository.NewTransferRepo(pgxConn)
+	transferRepo := repository.NewTransferRepo(pgConn)
 	passAlgo := algorithms.PasswordHashingAlgorithmsImpl{}
 	sessionAlgo := algorithms.NewSessionTokenAlgorithms(env)
 	router := rest.CreateRouter(
@@ -73,6 +67,4 @@ func TestListAccounts(t *testing.T) {
 			t.Errorf("Expected reqAccounts and testAccountsAsRequest to be equals: reqAccounts=%v testAccountsAsRequest=%v", reqAccounts, testAccountsAsRequest)
 		}
 	})
-
-	postgres.DownToMigrationZero(env)
 }
