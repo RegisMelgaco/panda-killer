@@ -19,6 +19,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//go:generate swag i -g main.go -o ../../swagger/
+
 // @title Panda Killer >:D
 // @version 1.0
 // @description Um projeto para estudar diversas tecnologias, tecnicas e práticas utilizadas no desenvolvimento de WEB-APIs com uso de Go(lang).

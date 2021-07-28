@@ -2,3 +2,5 @@
 .env
 .test-env
 swagger/
+gen/
+*_mock.go
