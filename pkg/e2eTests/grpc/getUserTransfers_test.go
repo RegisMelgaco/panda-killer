@@ -27,7 +27,7 @@ func TestGetUserTransfers(t *testing.T) {
 	ctx := context.Background()
 	var env config.EnvVariablesProvider = config.EnvVariablesProviderImpl{}
 
-	_, pgConn, pgPool := CreateNewTestDBAndEnv(t.Name())
+	_, pgConn, pgPool := repository.CreateNewTestDBAndEnv(t.Name())
 
 	queries := sqlc.New(pgPool)
 

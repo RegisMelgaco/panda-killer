@@ -19,7 +19,7 @@ func TestLogin(t *testing.T) {
 
 	ctx := context.Background()
 
-	env, _, pgPool := CreateNewTestDBAndEnv(t.Name())
+	env, _, pgPool := repository.CreateNewTestDBAndEnv(t.Name())
 
 	queries := sqlc.New(pgPool)
 

@@ -22,7 +22,7 @@ func TestCreateAccountGRPC(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, _, pgPool := CreateNewTestDBAndEnv(t.Name())
+	_, _, pgPool := repository.CreateNewTestDBAndEnv(t.Name())
 
 	queries := sqlc.New(pgPool)
 
