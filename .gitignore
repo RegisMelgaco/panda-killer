@@ -4,3 +4,4 @@
 swagger/
 gen/
 *_mock.go
+sqlc/

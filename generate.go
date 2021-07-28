@@ -1,3 +1,3 @@
 package pandakiller
 
-//go:generate buf generate
+//go:generate buf generate; sqlc generate
