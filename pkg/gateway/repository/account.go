@@ -68,7 +68,7 @@ func (r AccountRepoImpl) GetAccount(ctx context.Context, accountID account.Accou
 func (r AccountRepoImpl) GetAccountByCPF(ctx context.Context, cpf string) (*account.Account, error) {
 	a, err := r.q.SelectAccountByCPF(ctx, cpf)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return &account.Account{}, nil
+		return nil, account.ErrAccountNotFound
 	}
 
 	return toEntity(a), nil

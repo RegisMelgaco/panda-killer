@@ -80,3 +80,85 @@ func TestCreateAccount(t *testing.T) {
 		})
 	}
 }
+
+func TestGetAccountByCPF(t *testing.T) {
+	t.Parallel()
+
+	_, _, pgPool := repository.CreateNewTestDBAndEnv(t.Name())
+	q := sqlc.New(pgPool)
+	repo := repository.NewAccountRepo(q)
+
+	cases := []struct {
+		testName string
+
+		expectedAccount *account.Account
+		otherAccounts   []account.Account
+
+		cpf         string
+		expectedErr error
+	}{
+		{
+			testName: "Get with existing cpf SHOULD get correct account",
+			cpf:      "49008868580",
+			expectedAccount: &account.Account{
+				Name:      "Maria Jose",
+				Balance:   99,
+				CPF:       "49008868580",
+				Secret:    ";)",
+				CreatedAt: time.Now(),
+			},
+			otherAccounts: []account.Account{
+				{
+					Name:      "Joana",
+					Balance:   36,
+					CPF:       "49008868581",
+					Secret:    ";)",
+					CreatedAt: time.Now(),
+				},
+			},
+		},
+		{
+			testName:        fmt.Sprintf("Get with nonexisting cpf SHOULD get error %v", account.ErrAccountNotFound),
+			expectedAccount: nil,
+			otherAccounts: []account.Account{
+				{
+					Name:      "Joana",
+					Balance:   36,
+					CPF:       "49008868573",
+					Secret:    ";)",
+					CreatedAt: time.Now(),
+				},
+			},
+			cpf:         "0",
+			expectedErr: account.ErrAccountNotFound,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.testName, func(t *testing.T) {
+			t.Parallel()
+
+			accountsToBeStored := c.otherAccounts
+			if c.expectedAccount != nil {
+				accountsToBeStored = append(accountsToBeStored, *c.expectedAccount)
+			}
+			for _, a := range accountsToBeStored {
+				repo.CreateAccount(context.Background(), &a)
+			}
+
+			actual, err := repo.GetAccountByCPF(context.Background(), c.cpf)
+
+			if actual != nil {
+				assert.Greater(t, actual.ID, 0)
+				c.expectedAccount.ID = actual.ID
+
+				createdAtDelta := c.expectedAccount.CreatedAt.Sub(actual.CreatedAt)
+				assert.LessOrEqual(t, createdAtDelta, time.Second)
+				c.expectedAccount.CreatedAt = actual.CreatedAt
+			}
+
+			assert.Equal(t, c.expectedAccount, actual)
+			assert.Equal(t, c.expectedErr, err)
+		})
+	}
+}

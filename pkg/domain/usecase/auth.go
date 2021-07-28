@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"local/panda-killer/pkg/domain/entity/account"
 	"local/panda-killer/pkg/domain/entity/auth"
 
@@ -28,12 +29,11 @@ func (u AuthUsecase) Login(ctx context.Context, cpf, password string) (authoriza
 	})
 
 	userAccount, err := u.accountRepo.GetAccountByCPF(ctx, cpf)
+	if errors.Is(err, account.ErrAccountNotFound) {
+		return "", auth.ErrInvalidCredentials
+	}
 	if err != nil {
 		return "", err
-	}
-
-	if userAccount.ID < 1 {
-		return "", auth.ErrInvalidCredentials
 	}
 
 	err = u.passAlgo.CheckSecretAndPassword(userAccount.Secret, password)
