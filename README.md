@@ -136,8 +136,8 @@ sqlc generate
 - [x] https://github.com/go-ozzo/ozzo-validation
 - [x] Estudar validar input na camada entity ou usecase
 - [x] Fazer demais testes unitários do usecase de account
-- [ ] Fazer testes unitários para account repo
-- [ ] Testes unitários para handlers de account
+- [x] Fazer testes unitários para account repo
+- [x] Testes unitários para handlers de account
 - [ ] Pesquisar Go generate
 - [ ] [Mage](https://magefile.org/)
 - [ ] Fazer testes unitários (por camada)
