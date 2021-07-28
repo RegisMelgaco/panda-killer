@@ -10,19 +10,28 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type AccountUsecase struct {
+//go:generate moq -out account_mock.go . AccountUsecase
+
+type AccountUsecase interface {
+	GetAccounts(context.Context) ([]account.Account, error)
+	CreateAccount(ctx context.Context, balance shared.Money, name string, cpf string, password string) (*account.Account, error)
+	GetBalance(context.Context, account.AccountID) (shared.Money, error)
+}
+
+type AccountUsecaseImpl struct {
 	repo         account.AccountRepo
 	securityAlgo auth.PasswordHashingAlgorithms
 }
 
-func NewAccountUsecase(accountRepo account.AccountRepo, securityAlgo auth.PasswordHashingAlgorithms) *AccountUsecase {
-	return &AccountUsecase{
+func NewAccountUsecase(accountRepo account.AccountRepo, securityAlgo auth.PasswordHashingAlgorithms) AccountUsecase {
+	var u AccountUsecase = AccountUsecaseImpl{
 		repo:         accountRepo,
 		securityAlgo: securityAlgo,
 	}
+	return u
 }
 
-func (u AccountUsecase) GetAccounts(ctx context.Context) ([]account.Account, error) {
+func (u AccountUsecaseImpl) GetAccounts(ctx context.Context) ([]account.Account, error) {
 	accounts, err := u.repo.GetAccounts(ctx)
 	if err != nil {
 		logrus.Errorf("Get accounts failed with internal error: %v", err)
@@ -34,7 +43,7 @@ func (u AccountUsecase) GetAccounts(ctx context.Context) ([]account.Account, err
 	return accounts, err
 }
 
-func (u AccountUsecase) CreateAccount(ctx context.Context, balance shared.Money, name string, cpf string, password string) (*account.Account, error) {
+func (u AccountUsecaseImpl) CreateAccount(ctx context.Context, balance shared.Money, name string, cpf string, password string) (*account.Account, error) {
 	entry := logrus.WithFields(logrus.Fields{
 		"balance": balance, "name": name, "cpf": cpf,
 	})
@@ -61,7 +70,7 @@ func (u AccountUsecase) CreateAccount(ctx context.Context, balance shared.Money,
 	return newAccount, nil
 }
 
-func (u AccountUsecase) GetBalance(ctx context.Context, accountID account.AccountID) (shared.Money, error) {
+func (u AccountUsecaseImpl) GetBalance(ctx context.Context, accountID account.AccountID) (shared.Money, error) {
 	entry := logrus.WithField("accountID", accountID)
 
 	a, err := u.repo.GetAccount(ctx, accountID)

@@ -10,12 +10,12 @@ import (
 type Api struct {
 	gen.UnimplementedPandaKillerServer
 
-	AccountUsecase  *usecase.AccountUsecase
+	AccountUsecase  usecase.AccountUsecase
 	AuthUsecase     *usecase.AuthUsecase
 	TransferUsecase *usecase.TransferUsecase
 }
 
-func NewApi(accountUsecase *usecase.AccountUsecase, authUsecase *usecase.AuthUsecase, transferUsecase *usecase.TransferUsecase) *Api {
+func NewApi(accountUsecase usecase.AccountUsecase, authUsecase *usecase.AuthUsecase, transferUsecase *usecase.TransferUsecase) *Api {
 	return &Api{
 		AccountUsecase:  accountUsecase,
 		AuthUsecase:     authUsecase,

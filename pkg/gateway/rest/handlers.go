@@ -29,7 +29,7 @@ import (
 // @Failure 400 {object} ErrorResponse "Possible errors: account.ErrAccountCPFShouldHaveLength11, account.ErrAccountNameIsObligatory and account.ErrAccountCPFShouldBeUnique"
 // @Failure 500
 // @Router /accounts [post]
-func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
+func CreateAccount(usecase usecase.AccountUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody CreateAccountRequest
 		err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -74,7 +74,7 @@ func CreateAccount(usecase *usecase.AccountUsecase) http.HandlerFunc {
 // @Success 200 {object} []GetAccountResponse
 // @Failure 500
 // @Router /accounts [get]
-func GetAccounts(usecase *usecase.AccountUsecase) http.HandlerFunc {
+func GetAccounts(usecase usecase.AccountUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		accounts, err := usecase.GetAccounts(r.Context())
 		if err != nil {
@@ -106,7 +106,7 @@ func GetAccounts(usecase *usecase.AccountUsecase) http.HandlerFunc {
 // @Failure 404 {string} string "Account not found"
 // @Failure 500
 // @Router /{accountID}/balance [get]
-func GetAccountBalance(usecase *usecase.AccountUsecase) http.HandlerFunc {
+func GetAccountBalance(usecase usecase.AccountUsecase) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		accountIDStr := chi.URLParam(r, "accountID")
 		accountID, err := strconv.Atoi(accountIDStr)

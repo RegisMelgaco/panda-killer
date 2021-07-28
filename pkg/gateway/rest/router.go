@@ -11,7 +11,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func CreateRouter(env config.EnvVariablesProvider, accountUsecase *usecase.AccountUsecase, transferUsecase *usecase.TransferUsecase, authUsecase *usecase.AuthUsecase) http.Handler {
+func CreateRouter(env config.EnvVariablesProvider, accountUsecase usecase.AccountUsecase, transferUsecase *usecase.TransferUsecase, authUsecase *usecase.AuthUsecase) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
